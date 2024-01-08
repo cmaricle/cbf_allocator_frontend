@@ -1,4 +1,5 @@
-const SERVER_URL = `https://i6nvybbufwfw6lrvgthwod5nmu0mxjap.lambda-url.us-east-1.on.aws/`;
+const SERVER_URL = process.env.REACT_APP_BACKEND_URL;
+console.log(SERVER_URL)
 
 const METHOD = {
 	GET: 'GET',
