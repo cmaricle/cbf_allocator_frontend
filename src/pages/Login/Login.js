@@ -38,7 +38,8 @@ const LoginPage = () => {
       const hashedInputValue = sha256(passwordInput.value).toString();
       api.login(username, hashedInputValue).then((response) => {
         console.log(response)
-        if (response.status !== 200) {
+        if (response.statusCode !== 200) {
+          console.log(response)
           toast({
             description: "Invalid username or password.",
             status: 'error',

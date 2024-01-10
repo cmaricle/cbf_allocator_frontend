@@ -1,5 +1,4 @@
 const SERVER_URL = process.env.REACT_APP_BACKEND_URL;
-console.log(SERVER_URL)
 
 const METHOD = {
 	GET: 'GET',
@@ -26,29 +25,42 @@ const logResponse = (url, body = undefined) => {
 
 // Compose fetch with logging & JSON parsing
 const myFetch = (url, options = {}) => {
-	logRequest(url, options);
+    logRequest(url, options);
 
-	return fetch(url, {
-		headers: {
-			// 'Content-Type': 'application/json',
-			...(options.headers || {}),
-		},
-		...options,
-	})
-		.then(response => {
-			const contentType = response.headers.get('content-type');
-			if (contentType && contentType.indexOf('application/json') !== -1) {
-				return response.json();
-			}
-			return response;
-		})
-		.then(resBody => {
-			logResponse(url, resBody);
-			return resBody;
-		}).catch(function(error) {
-            console.log("request failed!")
+    return fetch(url, {
+        headers: {
+            // 'Content-Type': 'application/json',
+            ...(options.headers || {}),
+        },
+        ...options,
+    })
+        .then(response => {
+            const contentType = response.headers.get('content-type');
+            console.log(contentType);
+            console.log(response);
+
+            if (contentType && contentType.indexOf('application/json') !== -1) {
+                return response.json().then(response_body => {
+                    return {
+                        body: response_body,
+                        statusCode: response.status,
+                    };
+                });
+            } else {
+                // Handle non-JSON response here if needed
+                return {
+                    body: null,
+                    statusCode: response.status,
+                };
+            }
         })
+        .catch(function(error) {
+            console.log("request failed!");
+            // Rethrow the error to propagate it to the caller
+            throw error;
+        });
 };
+
 
 export const getSpeciesList = () => {
     const url = `${SERVER_URL}/species`;
