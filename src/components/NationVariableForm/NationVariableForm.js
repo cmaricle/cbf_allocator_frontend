@@ -190,7 +190,7 @@ function Form({ speciesList, nationsList }) {
   }
 
   function handleSpeciesRequestQuota(event) {
-    console.log(event)
+    // console.log(event)
   }
 
   return (

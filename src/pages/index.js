@@ -22,6 +22,7 @@ import * as api from '../modules/api'
 import NationVariableForm from '../components/NationVariableForm'
 
 import theme from "../theme"
+import ErrorPage from './Error/Error';
 
 const ParallaxHeroSection = ({speciesList, image, description, heading}) => {
   const [scrollY, setScrollY] = useState(0);
@@ -69,11 +70,11 @@ const ParallaxHeroSection = ({speciesList, image, description, heading}) => {
 };
 
 const HomeSection = ( {speciesList, nationList} ) => {
-  console.log(nationList)
   return (
-    <Flex>
+    <Center>
+    <Flex alignItems="center" minWidth='max-content'>
       {/* Left-hand side */}
-      <Box flex="1" p="10">
+      <Box flex="1" p="10" mx="center" textAlign={"center"}>
         <Heading variant={"solid"}  >
           Update data
         </Heading>
@@ -86,7 +87,7 @@ const HomeSection = ( {speciesList, nationList} ) => {
           nationsList={nationList}
         />
       </Box>
-      <Box flex="1" p="10">
+      {/* <Box flex="1" p="10">
         <Heading variant={"solid"}>
           View Historical Data
         </Heading>
@@ -99,8 +100,9 @@ const HomeSection = ( {speciesList, nationList} ) => {
         >
           Get Started
         </Button>
-      </Box>
+      </Box> */}
     </Flex>
+    </Center>
   );
 };
 
@@ -110,33 +112,42 @@ class MainPage extends Component {
     super(props);
     this.state = {
       nationsList: [],
-      speciesList: [] 
+      speciesList: [],
+      backendHealth: true, 
     }
   }
 
   componentDidMount() {
-    localStorage.clear()
-    const nationsList = JSON.parse(localStorage.getItem("nationsList"));
-    const speciesList = JSON.parse(localStorage.getItem("speciesList"));
-    if(nationsList && speciesList) {
-      this.setState({ nationsList: nationsList, speciesList: speciesList})
-    } else {
-      api.getSpeciesList().then(response => {
-        if (response.statusCode === 200) {
-          const speciesList = response["body"]
-          this.setState({speciesList: speciesList});
-          localStorage.setItem('speciesList', JSON.stringify(speciesList))
+    api.getHealth().then(response => {
+      if (response.statusCode !== 200) {
+        this.state.backendHealth = false;
+      } else { 
+        localStorage.clear()
+        const nationsList = JSON.parse(localStorage.getItem("nationsList"));
+        const speciesList = JSON.parse(localStorage.getItem("speciesList"));
+        if(nationsList && speciesList) {
+          this.setState({ nationsList: nationsList, speciesList: speciesList})
+        } else {
+          api.getSpeciesList().then(response => {
+            if (response.statusCode === 200) {
+              const speciesList = response["body"]
+              this.setState({speciesList: speciesList});
+              localStorage.setItem('speciesList', JSON.stringify(speciesList))
+            }
+    
+          })    
+          api.getNationsList().then(response => {
+            if (response.statusCode === 200) {
+              const nationsList = response["body"]
+              this.setState({nationsList: nationsList});
+              localStorage.setItem('nationsList', JSON.stringify(nationsList))
+            }
+          })
         }
-
-      })    
-      api.getNationsList().then(response => {
-        if (response.statusCode === 200) {
-          const nationsList = response["body"]
-          this.setState({nationsList: nationsList});
-          localStorage.setItem('nationsList', JSON.stringify(nationsList))
-        }
-      })
-    }
+      }
+    }).catch(exception => {
+      this.state.backendHealth = false;
+    })
   }
 
   updateNation = (nationName, nationVariableData) => {
@@ -147,9 +158,9 @@ class MainPage extends Component {
   render () {
     return (
       <ChakraProvider theme={theme}>
-        <Box p="2">
+        { this.state.backendHealth ? 
+        (<Box p="2">
           <WebsiteHeader></WebsiteHeader>
-          {/* Hero Section with Parallax Effect */}
           <ParallaxHeroSection 
             image="fish_2.jpeg"
             heading="Distribute Quota"
@@ -162,9 +173,9 @@ class MainPage extends Component {
             speciesList={this.state.speciesList}
             nationList={this.state.nationsList}
           ></HomeSection>
-          {/* Additional Sections */}
-          {/* Add more sections based on the structure of the website */}
-        </Box>
+       </Box>)
+        : (<ErrorPage/>)
+        }
       </ChakraProvider>
     );
   }

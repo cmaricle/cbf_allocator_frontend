@@ -48,7 +48,6 @@ class NationFormRequestBody extends Component {
     api.getYearRequestForSpecies(selectedSpecies, selectedYear)
     .then((result) => {
       if (result["statusCode"] === 200) {
-        console.log(result)
         if (result["body"] == null) {
           result["body"] = {};
         }
@@ -80,7 +79,6 @@ class NationFormRequestBody extends Component {
 
   setDefaultQuotaAndLicenseValue = (yearRequestForSpecies, nation = this.state.selectedNation) => {
     const quotaValue = yearRequestForSpecies[nation]?.requested_quota || 0;
-    console.log(quotaValue)
     this.props.setQuotaValue(quotaValue);
     const licenseValue = yearRequestForSpecies[nation]?.requested_license || 0;
     this.props.setLicenseValue(licenseValue);
@@ -143,7 +141,7 @@ class NationFormRequestBody extends Component {
         <FormControl isInvalid={this.props.isInvalid(this.props.licenseValue, MAX_LICENSE_VALUE)}>
           <SimpleGrid columns={2} spacing={10}>
               <FormLabel>
-                Enter icense
+                Enter License
               </FormLabel>
               <NumberInput
                 min={0}

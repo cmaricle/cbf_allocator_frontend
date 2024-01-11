@@ -54,7 +54,6 @@ function RunAlgorithm() {
           "year": 2023
         }
       ).then((response) => {
-        console.log(response)
         if (response["statusCode"] === 200) {
           setError(false);
           const results = response["body"]
@@ -112,7 +111,6 @@ function RunAlgorithm() {
       const response = results[`${type}_response`]
       var mergedDict = {}
       mergedDict = { ...response[`granted_${type}`] }
-      console.log(mergedDict)
       for (const key in response[`requested_${type}`]) {
         mergedDict[key] = [response[`requested_${type}`][key], mergedDict[key]]
       }
@@ -182,8 +180,8 @@ function RunAlgorithm() {
         </TableContainer>) :
         ( noResults ?
       (<Alert status="warning"><AlertIcon/>{algorithmResults["response"]}</Alert>)
-      : (<Alert status="error"><AlertIcon/>Error processing request - please try again!</Alert>)
-      )
+      : <></> ) 
+      ( error ? (<Alert status="error"><AlertIcon/>Error processing request - please try again!</Alert>) : (<></>))
       }
     </GridItem>
     <GridItem area={"footer"}>

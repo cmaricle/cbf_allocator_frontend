@@ -24,26 +24,35 @@ const logResponse = (url, body = undefined) => {
 };
 
 // Compose fetch with logging & JSON parsing
-const myFetch = (url, options = {}) => {
-    logRequest(url, options);
+const myFetch = (url, options = {}, maxRetries = 3, baseDelay = 2000) => {
+    // logRequest(url, options);
 
-    return fetch(url, {
-        headers: {
-            // 'Content-Type': 'application/json',
-            ...(options.headers || {}),
-        },
-        ...options,
-    })
-        .then(response => {
+    const fetchWithRetry = async (url, options, retries) => {
+        try {
+            const response = await fetch(url, {
+                headers: {
+                    // 'Content-Type': 'application/json',
+                    ...(options.headers || {}),
+                },
+                ...options,
+            });
+            if ([500, 502, 503].includes(response.status)) {
+                if (retries > 0) {
+                    const delay = baseDelay * Math.pow(2, maxRetries - retries);
+                    console.log(`Retrying in ${delay} milliseconds (${retries} retries left)`);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    return fetchWithRetry(url, options, retries - 1);
+                }
+                console.error(`Retried ${maxRetries} times, giving up`)
+                window.location.href = '/error';
+            }
             const contentType = response.headers.get('content-type');
             if (contentType && contentType.indexOf('application/json') !== -1) {
-                return response.json().then(response_body => {
-                    console.log(response_body)
-                    return {
-                        body: response_body,
-                        statusCode: response.status,
-                    };
-                });
+                const response_body = await response.json();
+                return {
+                    body: response_body,
+                    statusCode: response.status,
+                };
             } else {
                 // Handle non-JSON response here if needed
                 return {
@@ -51,14 +60,21 @@ const myFetch = (url, options = {}) => {
                     statusCode: response.status,
                 };
             }
-        })
-        .catch(function(error) {
-            console.log("request failed!");
-            // Rethrow the error to propagate it to the caller
-            throw error;
-        });
+        } catch (error) {
+            console.log('Request failed!');
+            console.log(error);  
+        }
+    };
+
+    return fetchWithRetry(url, options, maxRetries);
 };
 
+export const getHealth = () => {
+    const url = `${SERVER_URL}/health`;
+    return myFetch(url, {
+        method: METHOD.GET,
+    })
+}
 
 export const getSpeciesList = () => {
     const url = `${SERVER_URL}/species`;
@@ -116,7 +132,6 @@ export const getNationVariables = (nationName) => {
 }
 
 export const runAlgorithm = data => {
-    console.log(data)
     const url = `${SERVER_URL}/run-algorithm`
     return new Promise((resolve) => {
         resolve(myFetch(url, {

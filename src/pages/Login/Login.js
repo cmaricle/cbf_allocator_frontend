@@ -20,6 +20,8 @@ import WebsiteHeader from '../../components/WebsiteHeader/WebsiteHeader';
 import theme from '../../theme';
 import * as api from '../../modules/api';
 import { useAuth } from '../../AuthContext';
+import ErrorPage from '../Error';
+
 
 const LoginPage = () => {
   const toast = useToast();
@@ -27,10 +29,21 @@ const LoginPage = () => {
   const { login } = useAuth();
   const [username, setUsername] = useState('');
   const [loading, setLoading] = useState(false);
+  const [backendHealth, setBackendHealth] = useState(true);
 
   const onLogin = () => {
     setLoading(true);
   };
+
+  useEffect(() => {
+    api.getHealth().then(response => {
+      if (response.statusCode !== 200) {
+        setBackendHealth(false);
+      }
+    }).catch(exception => {
+      setBackendHealth(false);
+    })
+  }, []);
 
   useEffect(() => {
     if (loading) {
@@ -56,8 +69,10 @@ const LoginPage = () => {
 
   return (
     <ChakraProvider theme={theme}>
-      <WebsiteHeader />
-      {/* <Container maxW="container.sm" centerContent> */}
+      { backendHealth ? 
+      (
+        <>
+        <WebsiteHeader/>
         <Flex
           direction="column"
           align="center"
@@ -107,6 +122,10 @@ const LoginPage = () => {
             </Stack>
           </Card>
         </Flex>
+        </>
+        )
+        : (<ErrorPage/>)
+      }
       {/* </Container> */}
     </ChakraProvider>
   );
