@@ -23,7 +23,6 @@ const WebsiteHeader  = () => {
   const { logout, authenticated } = useAuth()
   const history = useHistory();
 
-  
   const onLogout = (e) => {
     logout();
     history.push("/login");

@@ -43,46 +43,44 @@ class NationFormRequestBody extends Component {
       this.setDefaultQuotaAndLicenseValue(this.state.speciesRequestForYear, selectedNation);
     }
   };
+  
+  getYearRequest = (selectedSpecies, selectedYear) => {
+    api.getYearRequestForSpecies(selectedSpecies, selectedYear)
+    .then((result) => {
+      if (result["statusCode"] === 200) {
+        console.log(result)
+        if (result["body"] == null) {
+          result["body"] = {};
+        }
+        this.setState({ speciesRequestForYear: result["body"] });
+        this.setDefaultQuotaAndLicenseValue(result["body"]);
+        this.props.setUserUpdated(false);
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+    });
+  }
 
   setSpecies = e => {
     const selectedSpecies = e.target.value;
     this.props.setSelectedSpecies(selectedSpecies)
     this.setState({ selectedSpecies });
     if (this.state.selectedYear !== "") {
-      api.getYearRequestForSpecies(selectedSpecies, this.state.selectedYear)
-        .then((result) => {
-          if (!result) {
-            result = {};
-          }
-          this.setState({ speciesRequestForYear: result });
-          this.setDefaultQuotaAndLicenseValue(result);
-          this.props.setUserUpdated(false);
-        })
-        .catch(error => {
-          console.error('Error:', error);
-        });
+      this.getYearRequest(selectedSpecies, this.state.selectedYear)
     }
   };
 
   setYear = year => {
     this.props.setSelectedYear(year)
     this.setState({ selectedYear: year });
-    api.getYearRequestForSpecies(this.state.selectedSpecies, year)
-      .then((result) => {
-        if (!result) {
-          result = {};
-        }
-        this.setState({ speciesRequestForYear: result });
-        this.setDefaultQuotaAndLicenseValue(result);
-      })
-      .catch(error => {
-        console.error('Error:', error);
-      });
+    this.getYearRequest(this.state.selectedSpecies, year);
     this.props.setUserUpdated(false);
   };
 
   setDefaultQuotaAndLicenseValue = (yearRequestForSpecies, nation = this.state.selectedNation) => {
     const quotaValue = yearRequestForSpecies[nation]?.requested_quota || 0;
+    console.log(quotaValue)
     this.props.setQuotaValue(quotaValue);
     const licenseValue = yearRequestForSpecies[nation]?.requested_license || 0;
     this.props.setLicenseValue(licenseValue);

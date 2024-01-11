@@ -33,12 +33,17 @@ function RunAlgorithm() {
   const {species, quota, license, speciesList, loading} = location.state;
   const [algorithmResults, setAlgorithmResults] = useState({});
   const [noResults, setNoResults] = useState(false);
+  const [error, setError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [rows, setRows] = useState({});
   const [rowHeaders, setRowHeaders] = useState([]);
-
-  console.log("here")
   
+  useEffect(() => {
+    return () => {
+      localStorage.clear();
+    };
+  }, []);
+
   const runAlgorithm = async (species, quota) => {
     setIsLoading(true);
     api.runAlgorithm(
@@ -48,46 +53,58 @@ function RunAlgorithm() {
           "quota": quota, 
           "year": 2023
         }
-      ).then((results) => {
-        if ("response" in results) {
-          setNoResults(true);
-          setAlgorithmResults(results)
-        } else {
-          setNoResults(false);
-          const quotaDict = createRows(results)
-          const licenseDict = createRows(results, "license")
-          const quotaDictEmpty = Object.values(quotaDict).length === 0
-          const licenseDictEmpty = Object.values(licenseDict).length === 0
-          var headers = ["Nation"]
-          if (!quotaDictEmpty) {
-            headers.push("Requested Quota", "Granted Quota")
-          }
-          if (!licenseDictEmpty) {
-            headers.push("Requested License", "Granted License")
-          }
-          setRowHeaders(headers);
-          var mergedDict = {}
-          if (!quotaDictEmpty && !licenseDictEmpty) {
-            Object.keys(quotaDict).forEach((key) => {
-              mergedDict[key] = [...quotaDict[key], ...licenseDict[key]];
-            });            
-          } else if(!quotaDictEmpty) {
-            mergedDict = quotaDict
+      ).then((response) => {
+        console.log(response)
+        if (response["statusCode"] === 200) {
+          setError(false);
+          const results = response["body"]
+          if ("response" in results) {
+            setNoResults(true);
+            setAlgorithmResults(results)
           } else {
-            mergedDict = licenseDict
+            setNoResults(false);
+            const quotaDict = createRows(results)
+            const licenseDict = createRows(results, "license")
+            const quotaDictEmpty = Object.values(quotaDict).length === 0
+            const licenseDictEmpty = Object.values(licenseDict).length === 0
+            var headers = ["Nation"]
+            if (!quotaDictEmpty) {
+              headers.push("Requested Quota", "Granted Quota")
+            }
+            if (!licenseDictEmpty) {
+              headers.push("Requested License", "Granted License")
+            }
+            setRowHeaders(headers);
+            var mergedDict = {}
+            if (!quotaDictEmpty && !licenseDictEmpty) {
+              Object.keys(quotaDict).forEach((key) => {
+                mergedDict[key] = [...quotaDict[key], ...licenseDict[key]];
+              });            
+            } else if(!quotaDictEmpty) {
+              mergedDict = quotaDict
+            } else {
+              mergedDict = licenseDict
+            }
+            setRows(mergedDict)
           }
-          setRows(mergedDict)
+          const pastRunVariables = "response" in results ? results : {}
+          pastRunVariables["quota"] = quota
+          pastRunVariables["species"] = species
+          pastRunVariables["license"] = license
+          setAlgorithmResults(pastRunVariables)
+          localStorage.setItem("rows", JSON.stringify(mergedDict))
+          localStorage.setItem("headers", JSON.stringify(headers))
+          localStorage.setItem('algorithmResults', JSON.stringify(pastRunVariables))
+          setIsLoading(false);
         }
-        const pastRunVariables = "response" in results ? results : {}
-        pastRunVariables["quota"] = quota
-        pastRunVariables["species"] = species
-        pastRunVariables["license"] = license
-        setAlgorithmResults(pastRunVariables)
-        localStorage.setItem("rows", JSON.stringify(mergedDict))
-        localStorage.setItem("headers", JSON.stringify(headers))
-        localStorage.setItem('algorithmResults', JSON.stringify(pastRunVariables))
+        else {
+          setError(true);
+          setIsLoading(false);
+        }
+    }).catch((exception => {
+        setError(true);
         setIsLoading(false);
-    })
+    }))
   }
   
   const createRows = (results, type="quota") => {
@@ -106,11 +123,14 @@ function RunAlgorithm() {
 
   useEffect(() => {
     const localAlgorithmResults = JSON.parse(localStorage.getItem("algorithmResults"));
-    const rows = JSON.parse(localStorage.getItem("rows"))
-    const headers = JSON.parse(localStorage.getItem("headers"))
-    if (!localAlgorithmResults || !rows || !headers || localAlgorithmResults["quota"] !== quota || localAlgorithmResults["species"] !== species) {
+    var rows = localStorage.getItem("rows")
+    var headers = localStorage.getItem("headers")
+    console.log("here")
+    if (!rows || !headers) {
       runAlgorithm(species, quota);
     } else {
+      rows = JSON.parse(rows)
+      headers = JSON.parse(headers)
       setAlgorithmResults(localAlgorithmResults)
       setRowHeaders(headers)
       setRows(rows)
@@ -161,7 +181,10 @@ function RunAlgorithm() {
             </Tbody>
           </Table>
         </TableContainer>) :
+        ( noResults ?
       (<Alert status="warning"><AlertIcon/>{algorithmResults["response"]}</Alert>)
+      : (<Alert status="error"><AlertIcon/>Error processing request - please try again!</Alert>)
+      )
       }
     </GridItem>
     <GridItem area={"footer"}>

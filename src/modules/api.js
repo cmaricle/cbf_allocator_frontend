@@ -36,11 +36,9 @@ const myFetch = (url, options = {}) => {
     })
         .then(response => {
             const contentType = response.headers.get('content-type');
-            console.log(contentType);
-            console.log(response);
-
             if (contentType && contentType.indexOf('application/json') !== -1) {
                 return response.json().then(response_body => {
+                    console.log(response_body)
                     return {
                         body: response_body,
                         statusCode: response.status,
@@ -118,6 +116,7 @@ export const getNationVariables = (nationName) => {
 }
 
 export const runAlgorithm = data => {
+    console.log(data)
     const url = `${SERVER_URL}/run-algorithm`
     return new Promise((resolve) => {
         resolve(myFetch(url, {

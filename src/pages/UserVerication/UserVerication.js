@@ -28,25 +28,26 @@ function AccountActivationPage() {
   const handleActivateAccount = () => {
     var success = true
     api.activateAccount(username, verificationToken).then((response) => {
-      const body = response["response"]
-      console.log(body)
-      if (body.includes("Invalid")) {
-        success = false
-      } 
-      if (success) {
-        toast({
-          title: 'Account Activated',
-          description: body,
-          status: 'success',
-          isClosable: true,
-        });
-      } else {
-        toast({
-          title: 'Activation Failed',
-          description: body,
-          status: 'error',
-          isClosable: true,
-        });
+      if (response["statusCode"] === 200) {
+        const body = response["body"]["response"]
+        if (body.includes("Invalid")) {
+          success = false
+        } 
+        if (success) {
+          toast({
+            title: 'Account Activated',
+            description: body,
+            status: 'success',
+            isClosable: true,
+          });
+        } else {
+          toast({
+            title: 'Activation Failed',
+            description: body,
+            status: 'error',
+            isClosable: true,
+          });
+        }
       }
       setUsername("")
       setVerificationToken("")

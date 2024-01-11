@@ -13,7 +13,8 @@ import {
   useToast,
   Text, 
   HStack,
-  FormErrorMessage
+  FormErrorMessage,
+  FormHelperText
 } from '@chakra-ui/react';
 import theme from '../../theme';
 import * as api from '../../modules/api';
@@ -34,8 +35,8 @@ const CreateUser = () => {
     try {
       // Call the API to create a new user
       const hashedPassword = sha256(password).toString()
-      const response = await api.createUser( username, hashedPassword, email );
-
+      const result = await api.createUser( username, hashedPassword, email );
+      const response = result["body"]
       if (response["response"].includes("Error")) {
         toast({
           title: 'Error',
@@ -68,6 +69,13 @@ const CreateUser = () => {
     }
   };
 
+  const isEmailInvalid = (email) => {
+    if (email.includes("@")) {
+      return true
+    }
+    return false
+  }
+
   return (
     <ChakraProvider theme={theme}>
             <WebsiteHeader />
@@ -85,7 +93,7 @@ const CreateUser = () => {
               onChange={(e) => setUsername(e.target.value)}
             />
           </FormControl>
-          <FormControl id="email" mb="4">
+          <FormControl isInvalid={isEmailInvalid(email)} id="email" mb="4">
             <FormLabel>Email</FormLabel>
             <HStack>
               <Input
@@ -96,6 +104,12 @@ const CreateUser = () => {
             />
             <Text>@coastnationfisheries.com</Text>
             </HStack>
+            { isEmailInvalid(email) ? (
+                <FormErrorMessage>Only add email username</FormErrorMessage>
+                ) : (
+                <FormHelperText>Only accepting users with verified CNF emails</FormHelperText>
+                )
+            }
           </FormControl>
           <FormControl id="password" mb="6">
             <FormLabel>Password</FormLabel>
@@ -125,7 +139,7 @@ const CreateUser = () => {
             size="lg" 
             onClick={onSubmit} 
             isLoading={loading}
-            isDisabled={password !== confirmPassword || password === "" || username === "" || email === ""}
+            isDisabled={password !== confirmPassword || password === "" || username === "" || email === "" || isEmailInvalid(email)}
             >
             Create User
           </Button>

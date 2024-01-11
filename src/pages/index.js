@@ -69,6 +69,7 @@ const ParallaxHeroSection = ({speciesList, image, description, heading}) => {
 };
 
 const HomeSection = ( {speciesList, nationList} ) => {
+  console.log(nationList)
   return (
     <Flex>
       {/* Left-hand side */}
@@ -119,19 +120,25 @@ class MainPage extends Component {
     if(nationsList && speciesList) {
       this.setState({ nationsList: nationsList, speciesList: speciesList})
     } else {
-      api.getSpeciesList().then(speciesList => {
-        this.setState({speciesList: speciesList});
-        localStorage.setItem('speciesList', JSON.stringify(speciesList))
+      api.getSpeciesList().then(response => {
+        if (response.statusCode === 200) {
+          const speciesList = response["body"]
+          this.setState({speciesList: speciesList});
+          localStorage.setItem('speciesList', JSON.stringify(speciesList))
+        }
+
       })    
-      api.getNationsList().then(nationsList => {
-        this.setState({nationsList: nationsList});
-        localStorage.setItem('nationsList', JSON.stringify(nationsList))
+      api.getNationsList().then(response => {
+        if (response.statusCode === 200) {
+          const nationsList = response["body"]
+          this.setState({nationsList: nationsList});
+          localStorage.setItem('nationsList', JSON.stringify(nationsList))
+        }
       })
     }
   }
 
   updateNation = (nationName, nationVariableData) => {
-    console.log(nationName)
     api.updateNationVariables(nationName, nationVariableData);
   }
 

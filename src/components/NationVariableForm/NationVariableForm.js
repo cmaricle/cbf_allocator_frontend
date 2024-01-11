@@ -78,9 +78,21 @@ function Form({ speciesList, nationsList }) {
     setSelectedNation(nationSelected);
     setUserUpdated(false);
     setNationVariablesHidden(false);
-    api.getNationVariables(nationSelected).then(variables => {
-      setFundsInputVariable(variables["funds"])
-      setSpeciesInputVariable(variables["availability"])
+    api.getNationVariables(nationSelected).then(response => {
+      if (response["statusCode"] === 200) {
+        const variables = response["body"]
+        setFundsInputVariable(variables["funds"])
+        setSpeciesInputVariable(variables["availability"])
+      }
+      else {
+        toast({
+          description: "Error loading data",
+          status: "error",
+          duration: 5000,
+          isClosable: true,
+        })
+      }
+     
     })
     setDisableSubmitButton(true)
   }
@@ -116,6 +128,22 @@ function Form({ speciesList, nationsList }) {
     setDisableSubmitButton(invalidValue || !userUpdated);
   }, [speciesInputVariable, fundsInputVariable, quotaValue, userUpdated])
 
+  function parseResponse(result) {
+    var description = "Error submitting data"
+    var statusType = "error"
+    if (result["statusCode"] == 200) {
+      description = result["body"]["response"]
+      statusType = "success"
+    }
+    setLoading(false);
+    toast({
+      description: description,
+      status: statusType,
+      duration: 5000,
+      isClosable: true,
+    })
+  }
+
   useEffect(() => {
     if(loading) {
       if (updateType === NATION_VARIABLE_UPDATE_TYPE) {
@@ -124,14 +152,15 @@ function Form({ speciesList, nationsList }) {
           "funds": fundsInputVariable, 
           "availability": speciesInputVariable
         }).then((result) => {
+          parseResponse(result)
+        }).catch((exception) => {
           setLoading(false);
           toast({
-            description: result["response"],
-            status: "success",
+            description: "Error submitting data",
+            status: "error",
             duration: 5000,
             isClosable: true,
           })
-          // extendOnClose();
         })
       } else if (updateType === NATION_REQUEST_UPDATE_TYPE){
         api.updateNationRequest(
@@ -141,14 +170,15 @@ function Form({ speciesList, nationsList }) {
           quotaValue,
           licenseValue,
         ).then((result) => {
+          parseResponse(result)
+        }).catch((exception) => {
           setLoading(false);
           toast({
-            description: result["response"],
-            status: "success",
+            description: "Error submitting data",
+            status: "error",
             duration: 5000,
             isClosable: true,
           })
-          // extendOnClose();
         })
       }
 
