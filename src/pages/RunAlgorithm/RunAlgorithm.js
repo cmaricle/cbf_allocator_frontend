@@ -123,10 +123,9 @@ function RunAlgorithm() {
 
   useEffect(() => {
     const localAlgorithmResults = JSON.parse(localStorage.getItem("algorithmResults"));
-    var rows = localStorage.getItem("rows")
-    var headers = localStorage.getItem("headers")
-    console.log("here")
-    if (!rows || !headers) {
+    const rows = localStorage.getItem("rows")
+    const headers = localStorage.getItem("headers")
+    if (!localAlgorithmResults || !rows || !headers || localAlgorithmResults["quota"] !== quota || localAlgorithmResults["species"] !== species) {
       runAlgorithm(species, quota);
     } else {
       rows = JSON.parse(rows)

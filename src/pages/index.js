@@ -115,6 +115,7 @@ class MainPage extends Component {
   }
 
   componentDidMount() {
+    localStorage.clear()
     const nationsList = JSON.parse(localStorage.getItem("nationsList"));
     const speciesList = JSON.parse(localStorage.getItem("speciesList"));
     if(nationsList && speciesList) {
