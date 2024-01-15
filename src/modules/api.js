@@ -29,9 +29,15 @@ const myFetch = (url, options = {}, maxRetries = 3, baseDelay = 2000) => {
 
     const fetchWithRetry = async (url, options, retries) => {
         try {
+            if(options.method === METHOD.POST) {
+                if (options.headers) {
+                    options.headers['Content-Type'] = "application/json"
+                } else {
+                    options.headers = {"Content-Type": "application/json"}
+                }
+            }   
             const response = await fetch(url, {
                 headers: {
-                    // 'Content-Type': 'application/json',
                     ...(options.headers || {}),
                 },
                 ...options,
@@ -96,7 +102,7 @@ export const updateNationVariables = (nationVariables) => {
         resolve(
             myFetch(url, {
             method: METHOD.POST,
-            body: JSON.stringify(nationVariables)
+            body: JSON.stringify(nationVariables),
         }))}
     );
 }

@@ -50,17 +50,21 @@ const LoginPage = () => {
       const passwordInput = document.getElementById('passwordInput');
       const hashedInputValue = sha256(passwordInput.value).toString();
       api.login(username, hashedInputValue).then((response) => {
-        if (response.statusCode !== 200) {
-          toast({
-            description: "Invalid username or password.",
-            status: 'error',
-            isClosable: true,
-          });
-          setUsername('');
-          passwordInput.value = '';
+        if (response) {
+          if (response.statusCode !== 200) {
+            toast({
+              description: "Invalid username or password.",
+              status: 'error',
+              isClosable: true,
+            });
+            setUsername('');
+            passwordInput.value = '';
+          } else {
+            login();
+            history.push('/');
+          }
         } else {
-          login();
-          history.push('/');
+          history.push("/error")
         }
         setLoading(false);
       });
