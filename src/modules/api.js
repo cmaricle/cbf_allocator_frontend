@@ -96,8 +96,8 @@ export const getNationsList = () => {
     })
 }
 
-export const updateNationVariables = (nationVariables) => {
-    const url = `${SERVER_URL}/nations`
+export const updateNationVariables = (nationName, nationVariables) => {
+    const url = `${SERVER_URL}/nations/${nationName}`
     return new Promise((resolve) => {
         resolve(
             myFetch(url, {

@@ -147,8 +147,8 @@ function Form({ speciesList, nationsList }) {
   useEffect(() => {
     if(loading) {
       if (updateType === NATION_VARIABLE_UPDATE_TYPE) {
-        api.updateNationVariables({
-          "nation_name": selectedNation, 
+        api.updateNationVariables(selectedNation, {
+          "_nation_name": selectedNation, 
           "funds": fundsInputVariable, 
           "availability": speciesInputVariable
         }).then((result) => {

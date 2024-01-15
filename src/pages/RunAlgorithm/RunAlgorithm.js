@@ -148,7 +148,8 @@ function RunAlgorithm() {
         <WebsiteHeader/>
     </GridItem>
     <GridItem area={"main"}>
-      { isLoading ? ( (<Progress size="xs" isIndeterminate variant="basic"></Progress>)) :
+      {
+      isLoading ? ((<Progress size="xs" isIndeterminate variant="basic"></Progress>)) :
         Object.keys(algorithmResults).length > 0  && !noResults ? 
       (<TableContainer>
           <Table>
@@ -177,12 +178,12 @@ function RunAlgorithm() {
             }
             </Tbody>
           </Table>
-        </TableContainer>) :
-        ( noResults ?
-      (<Alert status="warning"><AlertIcon/>{algorithmResults["response"]}</Alert>)
-      : <></> ) 
-      ( error ? (<Alert status="error"><AlertIcon/>Error processing request - please try again!</Alert>) : (<></>))
-      }
+        </TableContainer>)
+         : noResults ? 
+      (<Alert status="warning"><AlertIcon/>{algorithmResults["response"]}</Alert>) 
+      : error ? (<Alert status="error"><AlertIcon/>Error processing request - please try again!</Alert>) 
+      : <></>
+    }
     </GridItem>
     <GridItem area={"footer"}>
       <Form 
