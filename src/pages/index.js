@@ -76,7 +76,7 @@ const HomeSection = ( {speciesList, nationList} ) => {
       {/* Left-hand side */}
       <Box flex="1" p="10" mx="center" textAlign={"center"}>
         <Heading variant={"solid"}  >
-          Update data
+          Update Data
         </Heading>
         <Text fontSize="lg" mb="6">
         Update Nation yearly request data or modify Nation variables
@@ -122,7 +122,6 @@ class MainPage extends Component {
       if (response.statusCode !== 200) {
         this.state.backendHealth = false;
       } else { 
-        localStorage.clear()
         const nationsList = JSON.parse(localStorage.getItem("nationsList"));
         const speciesList = JSON.parse(localStorage.getItem("speciesList"));
         if(nationsList && speciesList) {

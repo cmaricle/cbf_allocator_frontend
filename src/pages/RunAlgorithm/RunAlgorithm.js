@@ -9,7 +9,7 @@ import {
   Grid,
   GridItem,
   Progress,
-  Spacer,
+  Flex,
   TableContainer,
   Table,
   TableCaption,
@@ -136,7 +136,8 @@ function RunAlgorithm() {
     console.log(isLoading)
   }, [quota, species])
   
-  return (<ChakraProvider theme={theme}>
+  return (
+  <ChakraProvider theme={theme}>
       <CSSReset />
     <Grid
       templateAreas={`"header"

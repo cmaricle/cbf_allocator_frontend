@@ -1,16 +1,14 @@
 // AuthContext.js
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [authenticated, setAuthenticated] = useState(() => {
-    return JSON.parse(localStorage.getItem('authenticated')) || false; 
-  })
-
-  useEffect(() => {
-    localStorage.setItem('authenticated', JSON.stringify(authenticated));
-  }, [authenticated]);
+    // Attempt to retrieve the authentication status from local storage
+    const storedAuthStatus = localStorage.getItem('authenticated');
+    return storedAuthStatus ? JSON.parse(storedAuthStatus) : false;
+  });
 
   const login = () => {
     setAuthenticated(true);
@@ -20,6 +18,11 @@ export const AuthProvider = ({ children }) => {
     setAuthenticated(false);
   };
 
+  // Store the authentication status in local storage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('authenticated', JSON.stringify(authenticated));
+  }, [authenticated]);
+
   return (
     <AuthContext.Provider value={{ authenticated, login, logout }}>
       {children}
@@ -27,6 +30,4 @@ export const AuthProvider = ({ children }) => {
   );
 };
 
-export const useAuth = () => {
-  return useContext(AuthContext);
-};
+export const useAuth = () => useContext(AuthContext);
