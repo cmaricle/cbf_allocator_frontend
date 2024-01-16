@@ -109,14 +109,12 @@ const LoginPage = () => {
               <Button 
                 onClick={onLogin} 
                 isLoading={loading} 
-                colorScheme="teal"
                 isDisabled={username === "" }
               >
                 Login
               </Button>
               <ChakraLink
                 as={ReactRouterLink} 
-                color="teal.500" 
                 fontSize="sm" 
                 textAlign="center"
                 to="/create-user"

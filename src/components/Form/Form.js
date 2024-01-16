@@ -1,7 +1,7 @@
 import React, {useState} from "react";
 
 import { Link as ReactRouterLink } from 'react-router-dom'
-import { ChakraProvider, Divider, FormLabel, Link as ChakraLink, LinkProps, Spacer } from '@chakra-ui/react'
+import { ChakraProvider, Divider, FormLabel, Link as ChakraLink, RadioGroup, Radio, Stack, Center } from '@chakra-ui/react'
 
 import {
   Box,
@@ -32,6 +32,7 @@ function Form({buttonName, speciesList}) {
   const [quotaEntryHidden, setQuotaEntryHidden] = useState(true);
   const [isDisabled, setIsDisabled] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [year, setYear] = useState(2024);
 
   const handleSpeciesChange = (event) => {
     const newSpecies = event.target.value;
@@ -77,9 +78,15 @@ function Form({buttonName, speciesList}) {
                       spacing={2}
                       align='stretch'
               >
-                <Box height="80px">
-                  <ApiSelect listType="species" list={speciesList} onSelect={handleSpeciesChange}/>
-                </Box>
+                <ApiSelect listType="species" list={speciesList} onSelect={handleSpeciesChange}/>
+                <Divider hidden={quotaEntryHidden} p={2}></Divider>
+                <RadioGroup hidden={selectedSpecies === ""} onChange={e => setYear(e)} value={year}>
+                  <Stack direction="row">
+                    {[2024, 2025, 2026, 2027, 2028].map(year => (
+                      <Radio key={year} value={String(year)}>{year}</Radio>
+                    ))}
+                  </Stack>
+                </RadioGroup>
                 <Divider hidden={quotaEntryHidden}></Divider>
                 <Box height="80px" hidden={quotaEntryHidden}>
                   <FormLabel>Enter available quota</FormLabel>
@@ -115,6 +122,7 @@ function Form({buttonName, speciesList}) {
                     species: selectedSpecies, 
                     quota: selectedQuota, 
                     license: selectedLicense,
+                    year: year,
                     speciesList: speciesList,
                     loading: true,
                   },

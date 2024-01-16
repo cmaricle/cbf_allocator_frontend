@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { Link as ReactRouterLink } from 'react-router-dom'
+
 
 import {
   Card,
@@ -7,9 +9,12 @@ import {
   Flex,
   Heading,
   Input,
+  Link as ChakraLink,
   Button,
   Stack,
   useToast,
+  ButtonGroup,
+  Center,
 } from '@chakra-ui/react';
 import { useHistory } from 'react-router-dom';
 
@@ -21,19 +26,24 @@ import WebsiteHeader from '../../components/WebsiteHeader/WebsiteHeader';
 function AccountActivationPage() {
   const [verificationToken, setVerificationToken] = useState('');
   const [username, setUsername] = useState('');
+  const [loading, setLoading] = useState(false)
+  const [loginButtonHidden, setLoginButtonHidden] = useState(true);
 
   const toast = useToast();
   const history = useHistory();
 
   const handleActivateAccount = () => {
     var success = true
+    setLoading(true)
     api.activateAccount(username, verificationToken).then((response) => {
+      setLoading(false)
       if (response["statusCode"] === 200) {
         const body = response["body"]["response"]
         if (body.includes("Invalid")) {
           success = false
         } 
         if (success) {
+          setLoginButtonHidden(false)
           toast({
             title: 'Account Activated',
             description: body,
@@ -78,9 +88,24 @@ function AccountActivationPage() {
             value={verificationToken}
             onChange={(e) => setVerificationToken(e.target.value)}
           />
-          <Button onClick={handleActivateAccount} colorScheme="teal">
+            <Button 
+              onClick={handleActivateAccount} 
+              isLoading={loading}
+              isDisabled={username === "" || verificationToken === ""}
+            >
             Activate Account
           </Button>
+          <Center>
+          <ChakraLink 
+                as={ReactRouterLink}
+                to={{
+                  pathname: "/login",
+                }}
+                hidden={loginButtonHidden}
+          >
+              Go to Login page
+          </ChakraLink>
+          </Center>
           </Stack>
         </Card>
       {/* </Container> */}

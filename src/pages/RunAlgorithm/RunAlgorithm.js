@@ -30,7 +30,7 @@ import theme from "../../theme";
 
 function RunAlgorithm() {
   const location = useLocation();
-  const {species, quota, license, speciesList, loading} = location.state;
+  const {species, quota, license, year, speciesList, loading} = location.state;
   const [algorithmResults, setAlgorithmResults] = useState({});
   const [noResults, setNoResults] = useState(false);
   const [error, setError] = useState(false);
@@ -51,7 +51,7 @@ function RunAlgorithm() {
           "species": species, 
           "license": license, 
           "quota": quota, 
-          "year": 2023
+          "year": year,
         }
       ).then((response) => {
         if (response["statusCode"] === 200) {

@@ -103,7 +103,7 @@ class NationFormRequestBody extends Component {
   render() {
     return (
       <ChakraProvider theme={theme}>
-      <VStack divider={<StackDivider borderColor='gray.200' />} spacing={2} align='stretch' hidden={this.props.hidden}>
+      <VStack divider={<StackDivider borderColor='gray.200' hidden={this.props.hidden} />} spacing={2} align='stretch' hidden={this.props.hidden}>
         <Box>
         <ApiSelect listType="nation" list={this.props.nationsList} onSelect={this.setNation} />
         </Box>
@@ -112,7 +112,7 @@ class NationFormRequestBody extends Component {
         </Box>
         <RadioGroup hidden={this.state.selectedSpecies === ""} onChange={this.setYear} value={this.state.selectedYear}>
           <Stack direction="row">
-            {[2023, 2024, 2025, 2026, 2027].map(year => (
+            {[2024, 2025, 2026, 2027, 2028].map(year => (
               <Radio key={year} value={String(year)}>{year}</Radio>
             ))}
           </Stack>
@@ -121,7 +121,7 @@ class NationFormRequestBody extends Component {
         <FormControl isInvalid={this.props.isInvalid(this.props.quotaValue, MAX_QUOTA_VALUE)}>
           <SimpleGrid columns={2} spacing={10}>
               <FormLabel>
-                Enter quota
+                Enter Quota
               </FormLabel>
               <NumberInput
                 min={0}
