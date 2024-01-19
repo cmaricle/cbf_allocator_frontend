@@ -10,11 +10,14 @@ export const AuthProvider = ({ children }) => {
     return storedAuthStatus ? JSON.parse(storedAuthStatus) : false;
   });
 
-  const login = () => {
+  const login = (token) => {
+    localStorage.setItem("token", token);
+    console.log(token)
     setAuthenticated(true);
   };
 
   const logout = () => {
+    localStorage.removeItem("token");
     setAuthenticated(false);
   };
 

@@ -60,7 +60,7 @@ const LoginPage = () => {
             setUsername('');
             passwordInput.value = '';
           } else {
-            login();
+            login(response["body"]["token"]);
             history.push('/');
           }
         } else {

@@ -7,6 +7,7 @@ const METHOD = {
 	DELETE: 'DELETE',
 };
 
+
 // Log outgoing requests
 const logRequest =  (url, body = undefined) => {
 	let message = `${url}`;
@@ -29,13 +30,16 @@ const myFetch = (url, options = {}, maxRetries = 3, baseDelay = 2000) => {
 
     const fetchWithRetry = async (url, options, retries) => {
         try {
-            if(options.method === METHOD.POST) {
-                if (options.headers) {
-                    options.headers['Content-Type'] = "application/json"
-                } else {
-                    options.headers = {"Content-Type": "application/json"}
-                }
-            }   
+            if (!options.headers) {
+                options.headers = {}
+            }
+            if (options.method === METHOD.POST ) {
+                options.headers['Content-Type'] = "application/json"
+            }
+            if (localStorage.getItem("token")) {
+                options.headers["authorization"] = `Bearer ${localStorage.getItem("token")}`
+            }  
+             
             const response = await fetch(url, {
                 headers: {
                     ...(options.headers || {}),
@@ -52,6 +56,9 @@ const myFetch = (url, options = {}, maxRetries = 3, baseDelay = 2000) => {
                 console.error(`Retried ${maxRetries} times, giving up`)
                 window.location.href = '/error';
             }
+            // if (response.status === 401) {
+            //     window.location.href = "/login"
+            // }
             const contentType = response.headers.get('content-type');
             if (contentType && contentType.indexOf('application/json') !== -1) {
                 const response_body = await response.json();

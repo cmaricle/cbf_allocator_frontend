@@ -217,7 +217,7 @@ function Form({ speciesList, nationsList }) {
               <Divider/>
               <NationFormBody
                   hidden={updateType !== NATION_VARIABLE_UPDATE_TYPE}
-                  fundInputVariable={fundsInputVariable}
+                  fundsInputVariable={fundsInputVariable}
                   isInvalid={isInvalid}
                   speciesInputVariable={speciesInputVariable}
                   handleNationChange={handleNationChange}

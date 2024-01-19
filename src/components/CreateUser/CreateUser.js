@@ -102,7 +102,7 @@ const CreateUser = () => {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
-            <Text>@coastnationsfisheries.ca</Text>
+            <Text>@gmail.com</Text>
             </HStack>
             { isEmailInvalid(email) ? (
                 <FormErrorMessage>Only add email username</FormErrorMessage>
