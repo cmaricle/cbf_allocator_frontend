@@ -1,7 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import sha256 from 'crypto-js/sha256';
+import { jwtDecode } from "jwt-decode";
 import { useHistory, Link as ReactRouterLink } from 'react-router-dom';
 import {
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogContent,
+  AlertDialogOverlay,
   Box,
   Button,
   ChakraProvider,
@@ -30,12 +37,25 @@ const LoginPage = () => {
   const [username, setUsername] = useState('');
   const [loading, setLoading] = useState(false);
   const [backendHealth, setBackendHealth] = useState(true);
+  const [sessionTimeout, setSessionTimeout] = useState(false);
 
   const onLogin = () => {
     setLoading(true);
   };
 
   useEffect(() => {
+    if (localStorage.getItem("token")) {
+      const currentTime =  Math.floor(new Date().getTime() / 1000);
+      const tokenExp = jwtDecode(localStorage.getItem("token"))["exp"]
+      if (tokenExp - currentTime < 0) {
+        localStorage.removeItem("token")
+        setSessionTimeout(true)
+      } else {
+        setSessionTimeout(false)
+      } 
+    } else {
+      setSessionTimeout(false)
+    }
     api.getHealth().then(response => {
       if (response.statusCode !== 200) {
         setBackendHealth(false);
@@ -123,6 +143,23 @@ const LoginPage = () => {
               </ChakraLink>
             </Stack>
           </Card>
+          <AlertDialog isOpen={sessionTimeout} onClose={() => setSessionTimeout(false)}>
+            <AlertDialogOverlay>
+              <AlertDialogContent>
+                <AlertDialogHeader fontSize="lg" fontWeight="bold">
+                  Session Timeout
+                </AlertDialogHeader>
+                <AlertDialogBody>
+                  Your session has timed out. Please log in again.
+                </AlertDialogBody>
+                <AlertDialogFooter>
+                  <Button colorScheme="blue" onClick={() => setSessionTimeout(false)}>
+                    Close
+                  </Button>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialogOverlay>
+          </AlertDialog>
         </Flex>
         </>
         )
