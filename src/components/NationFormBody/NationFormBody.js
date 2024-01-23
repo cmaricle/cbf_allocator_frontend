@@ -89,7 +89,6 @@ class NationFormBody extends Component {
 }
 
 NationFormBody.propTypes = {
-  fundInputVariable: PropTypes.number.isRequired,
   isInvalid: PropTypes.func.isRequired,
   speciesInputVariable: PropTypes.object.isRequired,
   handleNationChange: PropTypes.func.isRequired,
