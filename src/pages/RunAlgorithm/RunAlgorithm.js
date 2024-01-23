@@ -37,12 +37,6 @@ function RunAlgorithm() {
   const [isLoading, setIsLoading] = useState(false);
   const [rows, setRows] = useState({});
   const [rowHeaders, setRowHeaders] = useState([]);
-  
-  useEffect(() => {
-    return () => {
-      localStorage.clear();
-    };
-  }, []);
 
   const runAlgorithm = async (species, quota) => {
     setIsLoading(true);
@@ -59,6 +53,8 @@ function RunAlgorithm() {
           const results = response["body"]
           if ("response" in results) {
             setNoResults(true);
+            localStorage.removeItem("rows")
+            localStorage.removeItem("headers")
             setAlgorithmResults(results)
           } else {
             setNoResults(false);
@@ -121,16 +117,14 @@ function RunAlgorithm() {
 
   useEffect(() => {
     const localAlgorithmResults = JSON.parse(localStorage.getItem("algorithmResults"));
-    const rows = localStorage.getItem("rows")
-    const headers = localStorage.getItem("headers")
+    var rows = localStorage.getItem("rows")
+    var headers = localStorage.getItem("headers")
     if (!localAlgorithmResults || !rows || !headers || localAlgorithmResults["quota"] !== quota || localAlgorithmResults["species"] !== species) {
       runAlgorithm(species, quota);
     } else {
-      rows = JSON.parse(rows)
-      headers = JSON.parse(headers)
+      setRows(JSON.parse(rows))
+      setRowHeaders(JSON.parse(headers))
       setAlgorithmResults(localAlgorithmResults)
-      setRowHeaders(headers)
-      setRows(rows)
       setIsLoading(false);
     }
     console.log(isLoading)
