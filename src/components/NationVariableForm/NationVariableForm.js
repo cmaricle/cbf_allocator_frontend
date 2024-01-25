@@ -218,6 +218,7 @@ function Form({ speciesList, nationsList }) {
               <NationFormBody
                   hidden={updateType !== NATION_VARIABLE_UPDATE_TYPE}
                   isInvalid={isInvalid}
+                  fundsInputVariable={fundsInputVariable}
                   speciesInputVariable={speciesInputVariable}
                   handleNationChange={handleNationChange}
                   nationVariablesHidden={nationVariablesHidden}

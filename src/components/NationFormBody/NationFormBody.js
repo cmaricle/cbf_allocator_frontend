@@ -18,7 +18,6 @@ import ApiSelect from "../Select/Select";
 
 
 class NationFormBody extends Component {
-
   render() {
     return (
     <VStack divider={<StackDivider borderColor='gray.200' />} 
@@ -42,7 +41,7 @@ class NationFormBody extends Component {
             max={100} 
             onChange={this.props.handleInputChange}>
             <NumberInputField />
-            { this.props.isInvalid(this.props.fundInputVariable) ? (
+            { this.props.isInvalid(this.props.fundsInputVariable) ? (
               <FormErrorMessage>Please enter valid percentage.</FormErrorMessage>
               ) : (
               <FormHelperText>Enter a percentage.</FormHelperText>
@@ -91,6 +90,7 @@ class NationFormBody extends Component {
 NationFormBody.propTypes = {
   isInvalid: PropTypes.func.isRequired,
   speciesInputVariable: PropTypes.object.isRequired,
+  fundsInputVariable: PropTypes.number.isRequired,
   handleNationChange: PropTypes.func.isRequired,
   nationVariablesHidden: PropTypes.bool.isRequired,
   handleSpeciesInputVariable: PropTypes.func.isRequired,
