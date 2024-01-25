@@ -13,11 +13,30 @@ import {
   StackDivider,
   SimpleGrid,
 } from '@chakra-ui/react'
+import { Select, CreatableSelect, AsyncSelect } from "chakra-react-select";
 
 import ApiSelect from "../Select/Select";
 
 
 class NationFormBody extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      speciesOptions: []
+    }
+  }
+  componentDidMount() {
+    this.props.speciesList.forEach(item => {
+      this.state.speciesOptions.push(
+        {
+          "value": item,
+          "label": item
+        }
+      )
+    })
+    console.log(this.state.speciesOptions)
+  }
+
   render() {
     return (
     <VStack divider={<StackDivider borderColor='gray.200' />} 
@@ -52,36 +71,19 @@ class NationFormBody extends Component {
     </SimpleGrid>
     </Box>
     <Box hidden={this.props.nationVariablesHidden}>
-    <FormLabel>Please enter the following availability per species</FormLabel>
-    {Object.entries(this.props.speciesInputVariable).map(([key, value]) => (
-      <Box>
-        <FormControl isInvalid={this.props.isInvalid(value)}>
-          <SimpleGrid columns={2} spacing={10}>
-              <FormLabel>{key}</FormLabel>
-            <NumberInput 
-            key={key} 
-            clampValueOnBlur={false}
-            step={0.5}  
-            precision={2} 
-            min={0} 
-            max={100} 
-            defaultValue={value} 
-            value={value} 
-            onInput={this.props.handleSpeciesInputVariable}
-        
-            >
-              <NumberInputField key={key} id={key}/>
-              { this.props.isInvalid(value) ? (
-                <FormErrorMessage>Please enter valid percentage.</FormErrorMessage>
-                ) : (
-                <></>
-                )
-            }
-            </NumberInput>
-          </SimpleGrid>
-        </FormControl>
-        </Box>
-    ))}
+      <FormControl>
+      <FormLabel>
+        Select Species
+      </FormLabel>
+      <Select
+        isMulti
+        name="species"
+        options={this.state.speciesOptions}
+        placeholder={`Species ${this.props.nation} has availability to`}
+        closeMenuOnSelect={false}
+        onChange={this.props.handleSpeciesInputVariable}
+      />
+    </FormControl>
     </Box>
 </VStack>);
   }
@@ -96,6 +98,8 @@ NationFormBody.propTypes = {
   handleSpeciesInputVariable: PropTypes.func.isRequired,
   hidden: PropTypes.bool.isRequired,
   nationsList: PropTypes.array.isRequired,
+  speciesList: PropTypes.array.isRequired,
+  nation: PropTypes.string.isRequired,
 }
 
 export default NationFormBody;

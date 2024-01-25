@@ -10,6 +10,7 @@
     "@testing-library/react": "^13.0.1",
     "@testing-library/user-event": "^14.1.0",
     "bcrypt": "^5.1.1",
+    "chakra-react-select": "^4.7.6",
     "crypto-js": "^4.2.0",
     "framer-motion": "^6.5.1",
     "jwt-decode": "^4.0.0",

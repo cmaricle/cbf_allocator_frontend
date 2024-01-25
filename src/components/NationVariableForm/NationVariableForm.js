@@ -107,15 +107,12 @@ function Form({ speciesList, nationsList }) {
 
   function handleSpeciesInputVariable(event) {
     setUserUpdated(true);
-    var newValue = event.target.value;
-    if (newValue.slice(-1) !== ".") {
-      newValue = Number(newValue)
-    }
-    var species = event.target.id;
-    setSpeciesInputVariable(speciesInputVariable => ({
-      ...speciesInputVariable,
-      [species]: newValue
-    }));
+    const species = event
+    const speciesList = {}
+    event.forEach(item => {
+        speciesList[item["value"]] = true
+    })
+    setSpeciesInputVariable(speciesList);
   }
 
   useEffect(() => {
@@ -225,6 +222,8 @@ function Form({ speciesList, nationsList }) {
                   handleSpeciesInputVariable={handleSpeciesInputVariable}
                   handleInputChange={handleInputChange}
                   nationsList={nationsList}
+                  speciesList={speciesList}
+                  nation={selectedNation}
               ></NationFormBody>
               <NationFormRequestBody
                 hidden={updateType !== NATION_REQUEST_UPDATE_TYPE}
