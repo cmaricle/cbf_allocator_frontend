@@ -22,7 +22,8 @@ class NationFormBody extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      speciesOptions: []
+      speciesOptions: [],
+      speciesToShowInSelect: [],
     }
   }
   componentDidMount() {
@@ -34,7 +35,15 @@ class NationFormBody extends Component {
         }
       )
     })
-    console.log(this.state.speciesOptions)
+    console.log(this.props.speciesInputVariable)
+    this.props.speciesInputVariable.forEach(item => {
+      this.props.speciesToShowInSelect.push(
+        {
+          "value": item,
+          "label": item
+        }
+      )
+    })
   }
 
   render() {
@@ -82,6 +91,7 @@ class NationFormBody extends Component {
         placeholder={`Species ${this.props.nation} has availability to`}
         closeMenuOnSelect={false}
         onChange={this.props.handleSpeciesInputVariable}
+        value={this.props.speciesToShowInSelect}
       />
     </FormControl>
     </Box>
@@ -91,7 +101,7 @@ class NationFormBody extends Component {
 
 NationFormBody.propTypes = {
   isInvalid: PropTypes.func.isRequired,
-  speciesInputVariable: PropTypes.object.isRequired,
+  speciesInputVariable: PropTypes.array.isRequired,
   fundsInputVariable: PropTypes.number.isRequired,
   handleNationChange: PropTypes.func.isRequired,
   nationVariablesHidden: PropTypes.bool.isRequired,
@@ -100,6 +110,7 @@ NationFormBody.propTypes = {
   nationsList: PropTypes.array.isRequired,
   speciesList: PropTypes.array.isRequired,
   nation: PropTypes.string.isRequired,
+  speciesToShowInSelect: PropTypes.array.isRequired
 }
 
 export default NationFormBody;
