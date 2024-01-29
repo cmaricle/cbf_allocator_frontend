@@ -34,7 +34,8 @@ function Form({ speciesList, nationsList }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [nationVariablesHidden, setNationVariablesHidden] = useState(true)  
   const [fundsInputVariable, setFundsInputVariable] = useState(0);
-  const [speciesInputVariable, setSpeciesInputVariable, speciesInputVariableRef] = useState({});
+  const [speciesInputVariable, setSpeciesInputVariable, speciesInputVariableRef] = useState([]);
+  const [speciesToShowInSelect, setSpeciesToShowInSelect] = useState([])
   const [loading, setLoading] = useState(false);
   const [disableSubmitButton, setDisableSubmitButton] = useState(true);
   const [userUpdated, setUserUpdated] = useState(false)
@@ -53,12 +54,12 @@ function Form({ speciesList, nationsList }) {
   }
   
   function anyInvalidValue () {
-    for (const key in speciesInputVariable) {
-      var value = speciesInputVariable[key]
-      if (isInvalid(value)) {
-        return true
-      }
-    }
+    // for (const key in speciesInputVariable) {
+    //   var value = speciesInputVariable[key]
+    //   if (isInvalid(value)) {
+    //     return true
+    //   }
+    // }
     if (isInvalid(fundsInputVariable)) {
       return true
     }
@@ -82,7 +83,20 @@ function Form({ speciesList, nationsList }) {
       if (response["statusCode"] === 200) {
         const variables = response["body"]
         setFundsInputVariable(variables["funds"])
+        if (variables["availability"].constructor !== Array){
+          variables["availability"] = []
+        }
         setSpeciesInputVariable(variables["availability"])
+        const speciesToShowInSelect = []
+        variables["availability"].forEach(item => {
+          speciesToShowInSelect.push(
+            {
+              "value": item,
+              "label": item
+            }
+          )
+        })
+        setSpeciesToShowInSelect(speciesToShowInSelect)
       }
       else {
         toast({
@@ -107,15 +121,13 @@ function Form({ speciesList, nationsList }) {
 
   function handleSpeciesInputVariable(event) {
     setUserUpdated(true);
-    var newValue = event.target.value;
-    if (newValue.slice(-1) !== ".") {
-      newValue = Number(newValue)
-    }
-    var species = event.target.id;
-    setSpeciesInputVariable(speciesInputVariable => ({
-      ...speciesInputVariable,
-      [species]: newValue
-    }));
+    const species = event
+    const speciesList = []
+    event.forEach(item => [
+        speciesList.push(item["value"])
+    ])
+    setSpeciesToShowInSelect(event)
+    setSpeciesInputVariable(speciesList);
   }
 
   useEffect(() => {
@@ -225,6 +237,9 @@ function Form({ speciesList, nationsList }) {
                   handleSpeciesInputVariable={handleSpeciesInputVariable}
                   handleInputChange={handleInputChange}
                   nationsList={nationsList}
+                  speciesList={speciesList}
+                  nation={selectedNation}
+                  speciesToShowInSelect={speciesToShowInSelect}
               ></NationFormBody>
               <NationFormRequestBody
                 hidden={updateType !== NATION_REQUEST_UPDATE_TYPE}
