@@ -12,6 +12,11 @@ import {
   NumberInputField,
   StackDivider,
   SimpleGrid,
+  Flex,
+  Spacer,
+  Spinner,
+  Center,
+  Progress
 } from '@chakra-ui/react'
 import { Select, CreatableSelect, AsyncSelect } from "chakra-react-select";
 
@@ -57,9 +62,10 @@ class NationFormBody extends Component {
     <ApiSelect listType="nation" list={this.props.nationsList} onSelect={this.props.handleNationChange}/>
     </Box>
     <Box hidden={this.props.nationVariablesHidden}>
-    <SimpleGrid columns={2} spacing={10}>
       <FormControl isInvalid={this.props.isInvalid(this.props.fundsInputVariable)}>
         <FormLabel>Funds</FormLabel>
+        <Flex>
+          <SimpleGrid columns={2}>
           <NumberInput 
             step={0.5} 
             clampValueOnBlur={false} 
@@ -67,34 +73,44 @@ class NationFormBody extends Component {
             precision={2} 
             min={0} 
             max={100} 
-            onChange={this.props.handleInputChange}>
+            onChange={this.props.handleInputChange}
+            maxW={24}
+            >
             <NumberInputField />
-            { this.props.isInvalid(this.props.fundsInputVariable) ? (
-              <FormErrorMessage>Please enter valid percentage.</FormErrorMessage>
+          </NumberInput>
+          <Center height="auto">
+          <Spinner p={1} hidden={!this.props.loadingNation}/>
+          </Center>
+          </SimpleGrid>
+          </Flex>
+          { this.props.isInvalid(this.props.fundsInputVariable) ? (
+              <FormErrorMessage>Please entler valid percentage.</FormErrorMessage>
               ) : (
               <FormHelperText>Enter a percentage.</FormHelperText>
               )
-            }
-          </NumberInput>
-      </FormControl>
-    </SimpleGrid>
-    </Box>
-    <Box hidden={this.props.nationVariablesHidden}>
-      <FormControl>
-      <FormLabel>
-        Select Species
-      </FormLabel>
-      <Select
-        isMulti
-        name="species"
-        options={this.state.speciesOptions}
-        placeholder={`Species ${this.props.nation} has availability to`}
-        closeMenuOnSelect={false}
-        onChange={this.props.handleSpeciesInputVariable}
-        value={this.props.speciesToShowInSelect}
-      />
+          }
     </FormControl>
     </Box>
+    {
+      !this.props.loadingNation ?
+      (<Box hidden={this.props.nationVariablesHidden}>
+        <FormControl>
+        <FormLabel>
+          Select Species
+        </FormLabel>
+        <Select
+          isMulti
+          name="species"
+          options={this.state.speciesOptions}
+          placeholder={`Species ${this.props.nation} has availability to`}
+          closeMenuOnSelect={false}
+          onChange={this.props.handleSpeciesInputVariable}
+          value={this.props.speciesToShowInSelect}
+        />
+      </FormControl>
+      </Box>)
+      : (<Progress isIndeterminate size="xs" variant="basic"></Progress>)
+    }
 </VStack>);
   }
 }
@@ -110,7 +126,8 @@ NationFormBody.propTypes = {
   nationsList: PropTypes.array.isRequired,
   speciesList: PropTypes.array.isRequired,
   nation: PropTypes.string.isRequired,
-  speciesToShowInSelect: PropTypes.array.isRequired
+  speciesToShowInSelect: PropTypes.array.isRequired,
+  loadingNation: PropTypes.bool.isRequired,
 }
 
 export default NationFormBody;

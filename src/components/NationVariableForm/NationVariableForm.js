@@ -45,6 +45,7 @@ function Form({ speciesList, nationsList }) {
   const [licenseValue, setLicenseValue] = useState(0);
   const [selectedSpecies, setSelectedSpecies] = useState("")
   const [selectedYear, setSelectedYear] = useState(0)
+  const [loadingNation, setLoadingNation] = useState(false);
 
   function isInvalid (value, maxValue=100) {
     if(value > maxValue || value < 0 || typeof(value) == "string") {
@@ -79,7 +80,9 @@ function Form({ speciesList, nationsList }) {
     setSelectedNation(nationSelected);
     setUserUpdated(false);
     setNationVariablesHidden(false);
+    setLoadingNation(true);
     api.getNationVariables(nationSelected).then(response => {
+      setLoadingNation(false);
       if (response["statusCode"] === 200) {
         const variables = response["body"]
         setFundsInputVariable(variables["funds"])
@@ -240,6 +243,7 @@ function Form({ speciesList, nationsList }) {
                   speciesList={speciesList}
                   nation={selectedNation}
                   speciesToShowInSelect={speciesToShowInSelect}
+                  loadingNation={loadingNation}
               ></NationFormBody>
               <NationFormRequestBody
                 hidden={updateType !== NATION_REQUEST_UPDATE_TYPE}

@@ -68,7 +68,8 @@ export const theme = extendTheme({
         basic: {
           filledTrack: {
             bg: colors.main
-          }
+          },
+          size: "xs"
         }
       }
     },
