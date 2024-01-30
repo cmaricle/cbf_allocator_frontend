@@ -15,6 +15,7 @@ import {
   StackDivider,
   SimpleGrid,
   ChakraProvider,
+  Spinner,
 } from '@chakra-ui/react';
 
 import ApiSelect from "../Select/Select";
@@ -32,6 +33,7 @@ class NationFormRequestBody extends Component {
       speciesRequestForYear: {},
       selectedNation: "",
       selectedSpecies: "",
+      loading: false,
     };
   }
 
@@ -45,6 +47,7 @@ class NationFormRequestBody extends Component {
   };
   
   getYearRequest = (selectedSpecies, selectedYear) => {
+    this.state.loading = true;
     api.getYearRequestForSpecies(selectedSpecies, selectedYear)
     .then((result) => {
       if (result["statusCode"] === 200) {
@@ -55,9 +58,11 @@ class NationFormRequestBody extends Component {
         this.setDefaultQuotaAndLicenseValue(result["body"]);
         this.props.setUserUpdated(false);
       }
+      this.state.loading = false;
     })
     .catch(error => {
       console.error('Error:', error);
+      this.state.loading = false;
     });
   }
 
@@ -78,10 +83,12 @@ class NationFormRequestBody extends Component {
   };
 
   setDefaultQuotaAndLicenseValue = (yearRequestForSpecies, nation = this.state.selectedNation) => {
+    this.state.loading = true;
     const quotaValue = yearRequestForSpecies[nation]?.requested_quota || 0;
     this.props.setQuotaValue(quotaValue);
     const licenseValue = yearRequestForSpecies[nation]?.requested_license || 0;
     this.props.setLicenseValue(licenseValue);
+    this.state.loading = false;
   };
 
   updateQuotaValue = value => {
@@ -123,19 +130,26 @@ class NationFormRequestBody extends Component {
               <FormLabel>
                 Enter Quota
               </FormLabel>
-              <NumberInput
-                min={0}
-                max={MAX_QUOTA_VALUE}
-                value={this.props.quotaValue}
-                onChange={(_, value) => this.updateQuotaValue(value)}
-              >
-                <NumberInputField />
-                {this.props.isInvalid(this.props.quotaValue, MAX_QUOTA_VALUE) ? (
-                <FormErrorMessage>Enter valid quota.</FormErrorMessage>
-              ) : (
-                <FormHelperText>Enter a value between 0-100000</FormHelperText>
-              )}
-              </NumberInput>
+                { this.state.loading ?
+                (<Spinner/>) :
+                ( 
+                  <NumberInput
+                    min={0}
+                    max={MAX_QUOTA_VALUE}
+                    value={this.props.quotaValue}
+                    onChange={(_, value) => this.updateQuotaValue(value)}
+                  >
+                  <NumberInputField/>
+                  {
+                    this.props.isInvalid(this.props.quotaValue, MAX_QUOTA_VALUE) ? (
+                      <FormErrorMessage>Enter valid quota.</FormErrorMessage>
+                    ) : (
+                      <FormHelperText>Enter a value between 0-100000</FormHelperText>
+                    )
+                  }
+                  </NumberInput>
+                ) 
+              }
           </SimpleGrid>
         </FormControl>
         <FormControl isInvalid={this.props.isInvalid(this.props.licenseValue, MAX_LICENSE_VALUE)}>
@@ -143,7 +157,9 @@ class NationFormRequestBody extends Component {
               <FormLabel>
                 Enter License
               </FormLabel>
-              <NumberInput
+              { this.state.loading ? 
+              (<Spinner/>) :
+              (<NumberInput
                 min={0}
                 max={MAX_LICENSE_VALUE}
                 value={this.props.licenseValue}
@@ -155,7 +171,8 @@ class NationFormRequestBody extends Component {
               ) : (
                 <FormHelperText>Enter a value between 0-50</FormHelperText>
               )}
-              </NumberInput>
+              </NumberInput>)
+            }
           </SimpleGrid>
         </FormControl>
         </Box>
