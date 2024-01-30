@@ -16,7 +16,8 @@ import {
   Spacer,
   Spinner,
   Center,
-  Progress
+  Progress,
+  Text,
 } from '@chakra-ui/react'
 import { Select, CreatableSelect, AsyncSelect } from "chakra-react-select";
 
@@ -40,7 +41,6 @@ class NationFormBody extends Component {
         }
       )
     })
-    console.log(this.props.speciesInputVariable)
     this.props.speciesInputVariable.forEach(item => {
       this.props.speciesToShowInSelect.push(
         {
@@ -66,28 +66,33 @@ class NationFormBody extends Component {
         <FormLabel>Funds</FormLabel>
         <Flex>
           <SimpleGrid columns={2}>
-          <NumberInput 
-            step={0.5} 
-            clampValueOnBlur={false} 
-            value={this.props.fundsInputVariable} 
-            precision={2} 
-            min={0} 
-            max={100} 
-            onChange={this.props.handleInputChange}
-            maxW={24}
-            >
-            <NumberInputField />
-          </NumberInput>
+            { this.props.fundsInputVariable === 0 || this.props.fundsUpdated ?
+              (<NumberInput 
+                step={0.5} 
+                clampValueOnBlur={false} 
+                value={this.props.fundsInputVariable} 
+                precision={2} 
+                min={0} 
+                max={100} 
+                onChange={this.props.handleInputChange}
+                maxW={24}
+                >
+                <NumberInputField />
+              </NumberInput>) :
+              (<Text p={3}>{this.props.fundsInputVariable}</Text>)
+          }
           <Center height="auto">
           <Spinner p={1} hidden={!this.props.loadingNation}/>
           </Center>
           </SimpleGrid>
           </Flex>
-          { this.props.isInvalid(this.props.fundsInputVariable) ? (
+          { this.props.fundsInputVariable === 0 ?
+           (this.props.isInvalid(this.props.fundsInputVariable) ? (
               <FormErrorMessage>Please entler valid percentage.</FormErrorMessage>
               ) : (
               <FormHelperText>Enter a percentage.</FormHelperText>
               )
+           ) : (<></>)
           }
     </FormControl>
     </Box>
@@ -128,6 +133,7 @@ NationFormBody.propTypes = {
   nation: PropTypes.string.isRequired,
   speciesToShowInSelect: PropTypes.array.isRequired,
   loadingNation: PropTypes.bool.isRequired,
+  fundsUpdated: PropTypes.bool.isRequired,
 }
 
 export default NationFormBody;

@@ -17,6 +17,13 @@ import {
   VStack,
   Divider,
   ChakraProvider,
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogContent,
+  AlertDialogOverlay,
+  ButtonGroup,
 } from '@chakra-ui/react'
 
 import * as api from '../../modules/api'
@@ -34,6 +41,8 @@ function Form({ speciesList, nationsList }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [nationVariablesHidden, setNationVariablesHidden] = useState(true)  
   const [fundsInputVariable, setFundsInputVariable] = useState(0);
+  const [fundsUpdated, setFundsUpdated] = useState(false);
+  const [confirmed, setConfirmed] = useState(false);
   const [speciesInputVariable, setSpeciesInputVariable, speciesInputVariableRef] = useState([]);
   const [speciesToShowInSelect, setSpeciesToShowInSelect] = useState([])
   const [loading, setLoading] = useState(false);
@@ -55,12 +64,6 @@ function Form({ speciesList, nationsList }) {
   }
   
   function anyInvalidValue () {
-    // for (const key in speciesInputVariable) {
-    //   var value = speciesInputVariable[key]
-    //   if (isInvalid(value)) {
-    //     return true
-    //   }
-    // }
     if (isInvalid(fundsInputVariable)) {
       return true
     }
@@ -85,7 +88,10 @@ function Form({ speciesList, nationsList }) {
       setLoadingNation(false);
       if (response["statusCode"] === 200) {
         const variables = response["body"]
-        setFundsInputVariable(variables["funds"])
+        setFundsInputVariable(Number(variables["funds"]))
+        if(variables["funds"] !== 0) {
+          setConfirmed(true);
+        }
         if (variables["availability"].constructor !== Array){
           variables["availability"] = []
         }
@@ -109,13 +115,14 @@ function Form({ speciesList, nationsList }) {
           isClosable: true,
         })
       }
-     
+      setFundsUpdated(false);
     })
     setDisableSubmitButton(true)
   }
 
   function handleInputChange(event) {
     setUserUpdated(true);
+    setFundsUpdated(true);
     if (event.slice(-1) !== ".") {
       event = Number(event)
     }
@@ -162,14 +169,17 @@ function Form({ speciesList, nationsList }) {
   useEffect(() => {
     if(loading) {
       if (updateType === NATION_VARIABLE_UPDATE_TYPE) {
-        api.updateNationVariables(selectedNation, {
+        if (confirmed) {
+          api.updateNationVariables(selectedNation, {
           "_nation_name": selectedNation, 
           "funds": fundsInputVariable, 
           "availability": speciesInputVariable
         }).then((result) => {
+          setConfirmed(false)
           parseResponse(result)
         }).catch((exception) => {
           setLoading(false);
+          setConfirmed(false)
           toast({
             description: "Error submitting data",
             status: "error",
@@ -177,6 +187,7 @@ function Form({ speciesList, nationsList }) {
             isClosable: true,
           })
         })
+        }
       } else if (updateType === NATION_REQUEST_UPDATE_TYPE){
         api.updateNationRequest(
           selectedNation,
@@ -198,7 +209,7 @@ function Form({ speciesList, nationsList }) {
       }
 
     }
-  }, [loading])
+  }, [loading, confirmed])
 
   function handleOnRun(event) {
     setLoading(true);
@@ -244,6 +255,7 @@ function Form({ speciesList, nationsList }) {
                   nation={selectedNation}
                   speciesToShowInSelect={speciesToShowInSelect}
                   loadingNation={loadingNation}
+                  fundsUpdated={fundsUpdated}
               ></NationFormBody>
               <NationFormRequestBody
                 hidden={updateType !== NATION_REQUEST_UPDATE_TYPE}
@@ -275,6 +287,26 @@ function Form({ speciesList, nationsList }) {
             </ModalFooter>
           </ModalContent>
         </Modal>
+        <AlertDialog isOpen={loading && fundsUpdated}>
+            <AlertDialogOverlay>
+              <AlertDialogContent>
+                <AlertDialogHeader fontSize="lg" fontWeight="bold">
+                  Are you sure? 
+                </AlertDialogHeader>
+                <AlertDialogBody>
+                  Once a value for funds is submitted, it cannot be updated.
+                </AlertDialogBody>
+                <AlertDialogFooter>
+                  <ButtonGroup spacing={3}>
+                  <Button onClick={(e) => {setLoading(false)}} variant="cancel">Cancel</Button>
+                  <Button isLoading={confirmed} onClick={(e) => {setConfirmed(true)}}>
+                    Confirm
+                  </Button>
+                  </ButtonGroup>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialogOverlay>
+          </AlertDialog>
         </ChakraProvider>
   )
 }
