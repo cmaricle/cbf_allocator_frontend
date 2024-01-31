@@ -18,7 +18,9 @@ import {
   Td,
   Thead,
   Tbody,
-  Tfoot
+  Tfoot,
+  Input,
+  Text,
 } 
 from '@chakra-ui/react'
 
@@ -36,6 +38,7 @@ function RunAlgorithm() {
   const [error, setError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [rows, setRows] = useState({});
+  const [updatedValues, setUpdatedValues] = useState({})
   const [rowHeaders, setRowHeaders] = useState([]);
 
   const runAlgorithm = async (species, quota) => {
@@ -129,6 +132,17 @@ function RunAlgorithm() {
     }
     console.log(isLoading)
   }, [quota, species])
+
+  const onInputChange = (e) => {
+    const changedRow = e.target.name;
+    const nationName = changedRow.split("-")[0]
+    setUpdatedValues(
+      {
+        ...updatedValues,
+        [nationName]: e.target.value
+      }
+    )
+  }
   
   return (
   <ChakraProvider theme={theme}>
@@ -165,7 +179,13 @@ function RunAlgorithm() {
                   <Td>{key}</Td>
                   { 
                     value.map((value, index) => (
-                      <Td key={index} isNumeric>{value}</Td>
+                      <Td key={`${key}-${index}`} isNumeric>
+                        { index === 1 && !(key in updatedValues) ? 
+                          (<Input name={`${key}-${index}`} type="number" value={value} maxW={24} onChange={onInputChange}></Input>) :
+                          (index === 1 && key in updatedValues) ? (<Input name={`${key}-${index}`} type="number" value={updatedValues[key]} maxW={24} onChange={onInputChange}></Input>) :
+                          (<Text>{value}</Text>)
+                        }
+                      </Td>
                     ))
                   }
                 </Tr>
