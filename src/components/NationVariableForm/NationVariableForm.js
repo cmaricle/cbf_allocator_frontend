@@ -31,6 +31,7 @@ import * as api from '../../modules/api'
 import ApiSelect from "../Select/Select";
 import NationFormBody from "../NationFormBody/NationFormBody";
 import NationFormRequestBody from "../NationFormRequestBody/NationFormRequestBody";
+import AlertPopUp from "../AlertPopUp/AlertPopUp";
 import theme from "../../theme";
 
 const NATION_VARIABLE_UPDATE_TYPE = "Submit nation's variables"
@@ -287,26 +288,14 @@ function Form({ speciesList, nationsList }) {
             </ModalFooter>
           </ModalContent>
         </Modal>
-        <AlertDialog isOpen={loading && fundsUpdated}>
-            <AlertDialogOverlay>
-              <AlertDialogContent>
-                <AlertDialogHeader fontSize="lg" fontWeight="bold">
-                  Are you sure? 
-                </AlertDialogHeader>
-                <AlertDialogBody>
-                  Once a value for funds is submitted, it cannot be updated.
-                </AlertDialogBody>
-                <AlertDialogFooter>
-                  <ButtonGroup spacing={3}>
-                  <Button onClick={(e) => {setLoading(false)}} variant="cancel">Cancel</Button>
-                  <Button isLoading={confirmed} onClick={(e) => {setConfirmed(true)}}>
-                    Confirm
-                  </Button>
-                  </ButtonGroup>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialogOverlay>
-          </AlertDialog>
+        <AlertPopUp
+          isOpen={loading && fundsUpdated}
+          header="Are you sure"
+          dialog="Once a value for funds is submitted, it cannot be updated."
+          onCancel={(e) => {setLoading(false)}} 
+          onConfirm={(e) => {setConfirmed(true)}}
+          loading={loading && confirmed}
+        />
         </ChakraProvider>
   )
 }

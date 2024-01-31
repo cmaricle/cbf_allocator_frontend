@@ -2,8 +2,15 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from 'react-router-dom';
 
 import {
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogContent,
+  AlertDialogOverlay,
   Alert,
   AlertIcon,
+  ButtonGroup,
   ChakraProvider,
   CSSReset,
   Grid,
@@ -21,14 +28,19 @@ import {
   Tfoot,
   Input,
   Text,
+  IconButton,
 } 
 from '@chakra-ui/react'
+
+import { CheckIcon } from "@chakra-ui/icons"
 
 import * as api from '../../modules/api'
 
 import Form from "../../components/Form";
 import WebsiteHeader from "../../components/WebsiteHeader/WebsiteHeader";
+import AlertPopUp from "../../components/AlertPopUp/AlertPopUp";
 import theme from "../../theme";
+import { Button } from "react-scroll";
 
 function RunAlgorithm() {
   const location = useLocation();
@@ -40,6 +52,7 @@ function RunAlgorithm() {
   const [rows, setRows] = useState({});
   const [updatedValues, setUpdatedValues] = useState({})
   const [rowHeaders, setRowHeaders] = useState([]);
+  const [submit, setSubmit] = useState(false)
 
   const runAlgorithm = async (species, quota) => {
     setIsLoading(true);
@@ -67,10 +80,10 @@ function RunAlgorithm() {
             const licenseDictEmpty = Object.values(licenseDict).length === 0
             var headers = ["Nation"]
             if (!quotaDictEmpty) {
-              headers.push("Requested Quota", "Granted Quota")
+              headers.push("Requested Quota", "Granted Quota", "Accept")
             }
             if (!licenseDictEmpty) {
-              headers.push("Requested License", "Granted License")
+              headers.push("Requested License", "Granted License", "Accept")
             }
             setRowHeaders(headers);
             var mergedDict = {}
@@ -143,10 +156,14 @@ function RunAlgorithm() {
       }
     )
   }
+
+  const submitGrant = (e) => {
+    setSubmit(true)
+    console.log(rows)
+  }
   
   return (
   <ChakraProvider theme={theme}>
-      <CSSReset />
     <Grid
       templateAreas={`"header"
                       "main"
@@ -188,6 +205,7 @@ function RunAlgorithm() {
                       </Td>
                     ))
                   }
+                  <Td isNumeric><IconButton onClick={submitGrant} name={key} size="sm" icon={<CheckIcon/>}></IconButton></Td>
                 </Tr>
               ))
             }
@@ -207,6 +225,13 @@ function RunAlgorithm() {
       ></Form>
     </GridItem>
     </Grid>
+    <AlertPopUp 
+      isOpen={submit} 
+      onCancel={(e) => {setSubmit(false)}} 
+      onConfirm={(e) => {setSubmit(false)}}
+      header="Are you sure"
+      dialog="..."
+    />
     </ChakraProvider>
   );
 }
