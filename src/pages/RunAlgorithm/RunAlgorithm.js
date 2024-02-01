@@ -30,9 +30,10 @@ import {
   Text,
   IconButton,
   useToast,
+  Icon,
 } 
 from '@chakra-ui/react'
-
+import { IoIosSend } from "react-icons/io";
 import { CheckIcon } from "@chakra-ui/icons"
 
 import * as api from '../../modules/api'
@@ -41,7 +42,6 @@ import Form from "../../components/Form";
 import WebsiteHeader from "../../components/WebsiteHeader/WebsiteHeader";
 import AlertPopUp from "../../components/AlertPopUp/AlertPopUp";
 import theme from "../../theme";
-import { Button } from "react-scroll";
 
 function RunAlgorithm() {
   const location = useLocation();
@@ -55,6 +55,7 @@ function RunAlgorithm() {
   const [rowHeaders, setRowHeaders] = useState([]);
   const [submit, setSubmit] = useState(false)
   const [nationSubmitted, setNationSubmitted] = useState("")
+  const [nationsSubmitted, setNationsSubmitted] = useState([])
   const [loadingGrant, setLoadingGrant] = useState(false)
 
   const toast = useToast();
@@ -85,10 +86,10 @@ function RunAlgorithm() {
             const licenseDictEmpty = Object.values(licenseDict).length === 0
             var headers = ["Nation"]
             if (!quotaDictEmpty) {
-              headers.push("Requested Quota", "Granted Quota", "Accept")
+              headers.push("Requested Quota", "Granted Quota", "Submit")
             }
             if (!licenseDictEmpty) {
-              headers.push("Requested License", "Granted License", "Accept")
+              headers.push("Requested License", "Granted License", "Submit")
             }
             setRowHeaders(headers);
             var mergedDict = {}
@@ -169,6 +170,7 @@ function RunAlgorithm() {
     if (nationSubmitted in updatedValues) {
       finalizedGrant = updatedValues[nationSubmitted]
     } else {
+      console.log(rows[nationSubmitted])
       finalizedGrant = rows[nationSubmitted][1]
     }
     api.confirmGrant(
@@ -187,6 +189,10 @@ function RunAlgorithm() {
           status: 'success',
           isClosable: true,
         });
+        var submittedNations = nationsSubmitted
+        submittedNations.push(createdNationSubmittedRecord(nationSubmitted))
+        setNationsSubmitted(submittedNations)
+        localStorage.setItem("nationsSubmitted", submittedNations)
       } else {
         toast({
           title: 'Error saving grant',
@@ -200,9 +206,24 @@ function RunAlgorithm() {
     })
   }
   
+  const createdNationSubmittedRecord = (nationName) => {
+    return JSON.stringify({
+      "nationName": nationName,
+      "year": year,
+      "species": species,
+      "quota": quota,
+      "license": license,
+    })
+  }
+
   const onSubmit = (e) => {
     setSubmit(true);
     setNationSubmitted(e.target.id)
+  }
+
+  const nationStatus = (nationName) => {
+    console.log(localStorage.getItem("nationsSubmitted"))
+    return localStorage.getItem("nationsSubmitted")?.includes(createdNationSubmittedRecord(nationName))
   }
 
   return (
@@ -240,15 +261,26 @@ function RunAlgorithm() {
                   { 
                     value.map((value, index) => (
                       <Td key={`${key}-${index}`} isNumeric>
-                        { index === 1 && !(key in updatedValues) ? 
+                        { 
+                          (index !== 1 || nationStatus(key)) ? 
+                            (<Text>{value}</Text>) :
+                          (index === 1 && !(key in updatedValues)) ? 
                           (<Input name={`${key}-${index}`} type="number" value={value} maxW={24} onChange={onInputChange}></Input>) :
-                            (index === 1 && key in updatedValues) ? (<Input name={`${key}-${index}`} type="number" value={updatedValues[key]} maxW={24} onChange={onInputChange}></Input>) :
-                            (<Text>{value}</Text>)
+                           (<Input name={`${key}-${index}`} type="number" value={updatedValues[key]} maxW={24} onChange={onInputChange}></Input>)
                         }
                       </Td>
                     ))
                   }
-                  <Td isNumeric><IconButton onClick={onSubmit} id={key} size="sm" icon={<CheckIcon id={key}/>}></IconButton></Td>
+                  <Td isNumeric>
+                    { 
+                      (nationStatus(key)) ? 
+                        <CheckIcon></CheckIcon>
+                      :
+                        <IconButton onClick={onSubmit} id={key} size="sm" icon={<IoIosSend id={key}/>}
+                        ></IconButton>
+                    }
+                      </Td> 
+                    <Td></Td>
                 </Tr>
               ))
             }
