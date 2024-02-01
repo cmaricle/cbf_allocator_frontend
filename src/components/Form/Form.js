@@ -89,7 +89,7 @@ function Form({buttonName, speciesList}) {
                   <QuotaSlider 
                     onSelect={handleQuotaChange}
                     maxValue={100000}
-                    step={1000}
+                    step={500}
                   />
                 </Box>
                 <Box height="80px" hidden={quotaEntryHidden}>
