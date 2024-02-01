@@ -2,21 +2,13 @@ import React, { useState, useEffect } from "react";
 import { Link, useLocation } from 'react-router-dom';
 
 import {
-  AlertDialog,
-  AlertDialogBody,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogContent,
-  AlertDialogOverlay,
+  Box,
   Alert,
   AlertIcon,
-  ButtonGroup,
   ChakraProvider,
-  CSSReset,
   Grid,
   GridItem,
   Progress,
-  Flex,
   TableContainer,
   Table,
   TableCaption,
@@ -25,12 +17,13 @@ import {
   Td,
   Thead,
   Tbody,
-  Tfoot,
   Input,
   Text,
   IconButton,
   useToast,
   Icon,
+  NumberInput,
+  NumberInputField,
 } 
 from '@chakra-ui/react'
 import { IoIosSend } from "react-icons/io";
@@ -57,6 +50,7 @@ function RunAlgorithm() {
   const [nationSubmitted, setNationSubmitted] = useState("")
   const [nationsSubmitted, setNationsSubmitted] = useState([])
   const [loadingGrant, setLoadingGrant] = useState(false)
+  const [dollarAmount, setDollarAmount] = useState(0)
 
   const toast = useToast();
 
@@ -222,8 +216,30 @@ function RunAlgorithm() {
   }
 
   const nationStatus = (nationName) => {
-    console.log(localStorage.getItem("nationsSubmitted"))
     return localStorage.getItem("nationsSubmitted")?.includes(createdNationSubmittedRecord(nationName))
+  }
+
+  const requestDollarAmount = () => {
+    const format = (val) => {
+      return `$` + val
+    }
+    const parse = (val) => {
+      val.replace(/^\$/, '')
+      if (Number(val) !== NaN && !(val.includes("e"))) {
+        return val
+      } else {
+        return dollarAmount
+      }
+    }
+      
+    return (
+      <Box>
+        <Text>Please enter dollar amount for this quota:</Text>
+        <NumberInput value={format(dollarAmount)} onChange={(val) => setDollarAmount(parse(val))}>
+          <NumberInputField></NumberInputField>
+        </NumberInput>
+      </Box>
+    )
   }
 
   return (
@@ -302,11 +318,12 @@ function RunAlgorithm() {
     </Grid>
     <AlertPopUp 
       isOpen={submit} 
-      onCancel={(e) => {setSubmit(false)}} 
+      onCancel={(e) => {setSubmit(false); setDollarAmount(0)}} 
       onConfirm={submitGrant}
       header="Are you sure"
-      dialog="..."
+      dialog={requestDollarAmount()}
       loading={loadingGrant}
+      confirmedButtonDisabled={dollarAmount <= 0}
     />
     </ChakraProvider>
   );

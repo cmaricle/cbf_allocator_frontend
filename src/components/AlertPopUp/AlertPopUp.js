@@ -33,7 +33,7 @@ class AlertPopUp extends Component {
               }
               {
                 this.props.onConfirm ? 
-                  <Button onClick={this.props.onConfirm} variant="solid" isLoading={this.props.loading}>
+                  <Button onClick={this.props.onConfirm} variant="solid" isLoading={this.props.loading} isDisabled={this.props.confirmedButtonDisabled}>
                     Confirm
                   </Button> : <></>
               }
@@ -57,7 +57,8 @@ AlertPopUp.propTypes = {
   onCancel: PropTypes.func,
   onClose: PropTypes.func,
   header: PropTypes.string.isRequired,
-  dialog: PropTypes.string.isRequired,
+  dialog: PropTypes.string.isRequired || PropTypes.object.isRequired,
+  confirmedButtonDisabled: PropTypes.bool = false,
   loading: PropTypes.bool = false
 }
 
