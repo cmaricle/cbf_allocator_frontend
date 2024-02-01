@@ -29,6 +29,7 @@ import {
   Input,
   Text,
   IconButton,
+  useToast,
 } 
 from '@chakra-ui/react'
 
@@ -53,6 +54,10 @@ function RunAlgorithm() {
   const [updatedValues, setUpdatedValues] = useState({})
   const [rowHeaders, setRowHeaders] = useState([]);
   const [submit, setSubmit] = useState(false)
+  const [nationSubmitted, setNationSubmitted] = useState("")
+  const [loadingGrant, setLoadingGrant] = useState(false)
+
+  const toast = useToast();
 
   const runAlgorithm = async (species, quota) => {
     setIsLoading(true);
@@ -159,9 +164,47 @@ function RunAlgorithm() {
 
   const submitGrant = (e) => {
     setSubmit(true)
-    console.log(rows)
+    setLoadingGrant(true)
+    var finalizedGrant = 0;
+    if (nationSubmitted in updatedValues) {
+      finalizedGrant = updatedValues[nationSubmitted]
+    } else {
+      finalizedGrant = rows[nationSubmitted][1]
+    }
+    api.confirmGrant(
+      nationSubmitted, 
+      Number(year), 
+      species,
+      0,
+      0,
+      rows[nationSubmitted][0],
+      finalizedGrant,
+    ).then((response) => {
+      if (response["statusCode"] === 200) {
+        toast({
+          title: 'Grant saved!',
+          description: response["response"],
+          status: 'success',
+          isClosable: true,
+        });
+      } else {
+        toast({
+          title: 'Error saving grant',
+          description: "Please try again later",
+          status: 'error',
+          isClosable: true,
+        });
+      }
+      setLoadingGrant(false)
+      setSubmit(false)
+    })
   }
   
+  const onSubmit = (e) => {
+    setSubmit(true);
+    setNationSubmitted(e.target.id)
+  }
+
   return (
   <ChakraProvider theme={theme}>
     <Grid
@@ -199,13 +242,13 @@ function RunAlgorithm() {
                       <Td key={`${key}-${index}`} isNumeric>
                         { index === 1 && !(key in updatedValues) ? 
                           (<Input name={`${key}-${index}`} type="number" value={value} maxW={24} onChange={onInputChange}></Input>) :
-                          (index === 1 && key in updatedValues) ? (<Input name={`${key}-${index}`} type="number" value={updatedValues[key]} maxW={24} onChange={onInputChange}></Input>) :
-                          (<Text>{value}</Text>)
+                            (index === 1 && key in updatedValues) ? (<Input name={`${key}-${index}`} type="number" value={updatedValues[key]} maxW={24} onChange={onInputChange}></Input>) :
+                            (<Text>{value}</Text>)
                         }
                       </Td>
                     ))
                   }
-                  <Td isNumeric><IconButton onClick={submitGrant} name={key} size="sm" icon={<CheckIcon/>}></IconButton></Td>
+                  <Td isNumeric><IconButton onClick={onSubmit} id={key} size="sm" icon={<CheckIcon id={key}/>}></IconButton></Td>
                 </Tr>
               ))
             }
@@ -228,9 +271,10 @@ function RunAlgorithm() {
     <AlertPopUp 
       isOpen={submit} 
       onCancel={(e) => {setSubmit(false)}} 
-      onConfirm={(e) => {setSubmit(false)}}
+      onConfirm={submitGrant}
       header="Are you sure"
       dialog="..."
+      loading={loadingGrant}
     />
     </ChakraProvider>
   );

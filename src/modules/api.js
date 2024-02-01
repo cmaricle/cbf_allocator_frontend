@@ -192,3 +192,21 @@ export const createUser = (username, password, email) => {
             })}))
     })
 }
+
+export const confirmGrant = (nationName, year, species, requestedLicense, grantedLicense, requestedQuota, grantedQuota) => {
+    const url = `${SERVER_URL}/grant`
+    return new Promise((resolve) => {
+        resolve(myFetch(url, {
+            method: METHOD.POST,
+            body: JSON.stringify({
+                "year": year,
+                "species": species,
+                "nation_name": nationName,
+                "requested_license": requestedLicense,
+                "granted_license": grantedLicense,
+                "requested_quota": requestedQuota,
+                "granted_quota": grantedQuota
+            })
+        }))
+    })
+}
