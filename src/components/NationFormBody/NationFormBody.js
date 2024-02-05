@@ -63,7 +63,7 @@ class NationFormBody extends Component {
     </Box>
     <Box hidden={this.props.nationVariablesHidden}>
       <FormControl isInvalid={this.props.isInvalid(this.props.fundsInputVariable)}>
-        <FormLabel>Funds</FormLabel>
+        <FormLabel>Funds Percentage</FormLabel>
         <Flex>
           <SimpleGrid columns={2}>
             { this.props.fundsInputVariable === 0 || this.props.fundsUpdated ?
@@ -79,7 +79,7 @@ class NationFormBody extends Component {
                 >
                 <NumberInputField />
               </NumberInput>) :
-              (<Text p={3}>{this.props.fundsInputVariable}</Text>)
+              (<Text p={3}>{this.props.fundsInputVariable}%</Text>)
           }
           <Center height="auto">
           <Spinner p={1} hidden={!this.props.loadingNation}/>
