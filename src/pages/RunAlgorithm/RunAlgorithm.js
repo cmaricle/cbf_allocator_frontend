@@ -21,9 +21,10 @@ import {
   Text,
   IconButton,
   useToast,
-  Icon,
+  FormLabel,
   NumberInput,
   NumberInputField,
+  FormControl,
 } 
 from '@chakra-ui/react'
 import { IoIosSend } from "react-icons/io";
@@ -225,19 +226,22 @@ function RunAlgorithm() {
     }
     const parse = (val) => {
       val.replace(/^\$/, '')
+      val.replace('/^0*(\S+)/', '')
       if (Number(val) !== NaN && !(val.includes("e"))) {
         return val
       } else {
         return dollarAmount
       }
     }
-      
+
     return (
       <Box>
-        <Text>Please enter dollar amount for this quota:</Text>
-        <NumberInput value={format(dollarAmount)} onChange={(val) => setDollarAmount(parse(val))}>
+        <FormControl>
+        <FormLabel>Please enter dollar amount for this quota:</FormLabel>
+        <NumberInput min={0} value={format(dollarAmount)} onChange={(val) => setDollarAmount(parse(val))}>
           <NumberInputField></NumberInputField>
         </NumberInput>
+        </FormControl>
       </Box>
     )
   }
@@ -320,7 +324,7 @@ function RunAlgorithm() {
       isOpen={submit} 
       onCancel={(e) => {setSubmit(false); setDollarAmount(0)}} 
       onConfirm={submitGrant}
-      header="Are you sure"
+      header="Are you sure?"
       dialog={requestDollarAmount()}
       loading={loadingGrant}
       confirmedButtonDisabled={dollarAmount <= 0}
