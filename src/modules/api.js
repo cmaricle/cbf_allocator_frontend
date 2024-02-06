@@ -193,7 +193,7 @@ export const createUser = (username, password, email) => {
     })
 }
 
-export const confirmGrant = (nationName, year, species, requestedLicense, grantedLicense, requestedQuota, grantedQuota) => {
+export const confirmGrant = (nationName, year, species, requestedLicense, grantedLicense, requestedQuota, grantedQuota, cost) => {
     const url = `${SERVER_URL}/grant`
     return new Promise((resolve) => {
         resolve(myFetch(url, {
@@ -205,7 +205,8 @@ export const confirmGrant = (nationName, year, species, requestedLicense, grante
                 "requested_license": requestedLicense,
                 "granted_license": grantedLicense,
                 "requested_quota": requestedQuota,
-                "granted_quota": grantedQuota
+                "granted_quota": grantedQuota,
+                "cost": cost
             })
         }))
     })

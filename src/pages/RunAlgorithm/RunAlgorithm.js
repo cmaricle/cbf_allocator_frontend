@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useReducer } from "react";
 import { Link, useLocation } from 'react-router-dom';
 
 import {
@@ -54,9 +54,11 @@ function RunAlgorithm() {
   const [dollarAmount, setDollarAmount] = useState(0)
 
   const toast = useToast();
+  const [, forceUpdate] = useReducer(x => x + 1, 0);
 
   const runAlgorithm = async (species, quota) => {
     setIsLoading(true);
+    setUpdatedValues({})
     api.runAlgorithm(
         {
           "species": species, 
@@ -81,11 +83,12 @@ function RunAlgorithm() {
             const licenseDictEmpty = Object.values(licenseDict).length === 0
             var headers = ["Nation"]
             if (!quotaDictEmpty) {
-              headers.push("Requested Quota", "Granted Quota", "Submit")
+              headers.push("Requested Quota", "Granted Quota")
             }
             if (!licenseDictEmpty) {
-              headers.push("Requested License", "Granted License", "Submit")
+              headers.push("Requested License", "Granted License")
             }
+            headers.push("Submit")
             setRowHeaders(headers);
             var mergedDict = {}
             if (!quotaDictEmpty && !licenseDictEmpty) {
@@ -150,32 +153,55 @@ function RunAlgorithm() {
   const onInputChange = (e) => {
     const changedRow = e.target.name;
     const nationName = changedRow.split("-")[0]
-    setUpdatedValues(
-      {
-        ...updatedValues,
-        [nationName]: e.target.value
-      }
-    )
+    var updatedNationValues = updatedValues
+    var val = e.target.value;
+    if (!(nationName in updatedNationValues)) {
+      updatedNationValues[nationName] = {}
+    }
+    if (quota > 0 && license > 0) {
+        const changeType = changedRow.split("-")[1]
+        if (changeType == 1) {
+          updatedNationValues[nationName]["quota"] = Number(val)
+        } else {
+          updatedNationValues[nationName]["license"] = Number(val)
+        }
+    } else if (license > 0) {
+      updatedNationValues[nationName]["license"] = Number(val)
+    } else {
+      updatedNationValues[nationName]["quota"] = Number(val)
+    }
+    setUpdatedValues(updatedNationValues)
+    forceUpdate()
+    console.log(updatedNationValues)
   }
 
   const submitGrant = (e) => {
     setSubmit(true)
     setLoadingGrant(true)
-    var finalizedGrant = 0;
+    var finalizedQuota = 0;
+    var finalizedLicense = 0;
     if (nationSubmitted in updatedValues) {
-      finalizedGrant = updatedValues[nationSubmitted]
+      finalizedQuota = updatedValues[nationSubmitted]?.quota
+      finalizedLicense = updatedValues[nationSubmitted]?.license
     } else {
-      console.log(rows[nationSubmitted])
-      finalizedGrant = rows[nationSubmitted][1]
+      if (quota > 0 && license > 0) {
+        finalizedQuota = rows[nationSubmitted][1]
+        finalizedLicense = rows[nationSubmitted][3]
+      } else if (license > 0) {
+        finalizedLicense = rows[nationSubmitted][1]
+      } else {
+        finalizedQuota = rows[nationSubmitted][1]
+      }
     }
     api.confirmGrant(
       nationSubmitted, 
       Number(year), 
       species,
-      0,
-      0,
-      rows[nationSubmitted][0],
-      finalizedGrant,
+      Number(license > 0 && quota > 0 ? rows[nationSubmitted][2] : license > 0 ? rows[nationSubmitted][0] : 0),
+      Number(finalizedLicense),
+      Number(quota > 0 ? rows[nationSubmitted][0] : 0),
+      Number(finalizedQuota),
+      Number(dollarAmount),
     ).then((response) => {
       if (response["statusCode"] === 200) {
         toast({
@@ -246,6 +272,42 @@ function RunAlgorithm() {
     )
   }
 
+  const format = (val) => {
+    var strVal = String(val)
+    strVal.replace('/^0*(\S+)/', '')
+    return strVal
+  }
+
+  const getValue = (key, item, index) => {
+    console.log(updatedValues)
+    if (license === 0) {
+      if (key in updatedValues && "quota" in updatedValues["quota"]) {
+        return updatedValues[key]["quota"]
+      } 
+      return item
+    } else if (quota === 0) {
+      if (key in updatedValues && "license" in updatedValues["license"]) {
+        return updatedValues[key]["license"]
+      } 
+      return item
+    } else {
+      if (index === 3) {
+        if (key in updatedValues && "license" in updatedValues[key]) {
+          return updatedValues[key]["license"]
+        } else {
+          return item 
+        }
+      } 
+      else {
+        if (key in updatedValues && "quota" in updatedValues[key]) {
+          return updatedValues[key]["quota"]
+        } else {
+          return item 
+        }
+      } 
+    }
+  }
+
   return (
   <ChakraProvider theme={theme}>
     <Grid
@@ -275,35 +337,39 @@ function RunAlgorithm() {
             </Thead>
             <Tbody>
             {
-              Object.entries(rows).map(([key, value, index]) => (
-                <Tr>
+              Object.entries(rows).map(([key, value]) => (
+                <Tr key={key}>
                   <Td>{key}</Td>
-                  { 
-                    value.map((value, index) => (
-                      <Td key={`${key}-${index}`} isNumeric>
-                        { 
-                          (index !== 1 || nationStatus(key)) ? 
-                            (<Text>{value}</Text>) :
-                          (index === 1 && !(key in updatedValues)) ? 
-                          (<Input name={`${key}-${index}`} type="number" value={value} maxW={24} onChange={onInputChange}></Input>) :
-                           (<Input name={`${key}-${index}`} type="number" value={updatedValues[key]} maxW={24} onChange={onInputChange}></Input>)
-                        }
-                      </Td>
-                    ))
-                  }
+                  {value.map((item, index) => (
+                    <Td key={`${key}-${index}`} isNumeric>
+                      {(index % 2 !== 1 || nationStatus(key)) ? (
+                        <Text>{item}</Text>
+                      ) :  (
+                        <Input
+                          name={`${key}-${index}`}
+                          type="number"
+                          min={0}
+                          value={format(getValue(key, item, index))}
+                          maxW={24}
+                          onChange={onInputChange}
+                        />
+                      
+                      )
+                      }
+                    </Td>
+                  ))}
                   <Td isNumeric>
-                    { 
-                      (nationStatus(key)) ? 
-                        <CheckIcon></CheckIcon>
-                      :
-                        <IconButton onClick={onSubmit} id={key} size="sm" icon={<IoIosSend id={key}/>}
-                        ></IconButton>
-                    }
-                      </Td> 
-                    <Td></Td>
+                    {nationStatus(key) ? (
+                      <CheckIcon />
+                    ) : (
+                      <IconButton onClick={onSubmit} id={key} size="sm" icon={<IoIosSend id={key} />} />
+                    )}
+                  </Td>
+                  <Td></Td>
                 </Tr>
               ))
             }
+
             </Tbody>
           </Table>
         </TableContainer>)
