@@ -245,7 +245,9 @@ function RunAlgorithm() {
 
   const requestDollarAmount = () => {
     const format = (val) => {
-      return `$` + val
+      var strVal = String(val)
+      strVal.replace('/^0*(\S+)/', '')
+      return `$` + Number(strVal)
     }
     const parse = (val) => {
       val.replace(/^\$/, '')
