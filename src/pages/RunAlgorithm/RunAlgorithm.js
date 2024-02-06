@@ -153,7 +153,7 @@ function RunAlgorithm() {
   const onInputChange = (e) => {
     const changedRow = e.target.name;
     const nationName = changedRow.split("-")[0]
-    var updatedNationValues = updatedValues
+    var updatedNationValues = localStorage.getItem("updatedValues") ? JSON.parse(localStorage.getItem("updatedValues")) : updatedValues
     var val = e.target.value;
     if (!(nationName in updatedNationValues)) {
       updatedNationValues[nationName] = {}
@@ -171,8 +171,8 @@ function RunAlgorithm() {
       updatedNationValues[nationName]["quota"] = Number(val)
     }
     setUpdatedValues(updatedNationValues)
+    localStorage.setItem("updatedValues", JSON.stringify(updatedNationValues))
     forceUpdate()
-    console.log(updatedNationValues)
   }
 
   const submitGrant = (e) => {
@@ -180,19 +180,8 @@ function RunAlgorithm() {
     setLoadingGrant(true)
     var finalizedQuota = 0;
     var finalizedLicense = 0;
-    if (nationSubmitted in updatedValues) {
-      finalizedQuota = updatedValues[nationSubmitted]?.quota
-      finalizedLicense = updatedValues[nationSubmitted]?.license
-    } else {
-      if (quota > 0 && license > 0) {
-        finalizedQuota = rows[nationSubmitted][1]
-        finalizedLicense = rows[nationSubmitted][3]
-      } else if (license > 0) {
-        finalizedLicense = rows[nationSubmitted][1]
-      } else {
-        finalizedQuota = rows[nationSubmitted][1]
-      }
-    }
+    finalizedLicense = getValue(nationSubmitted, (quota > 0 && license > 0) ? rows[nationSubmitted][3] : rows[nationSubmitted][1], 3)
+    finalizedQuota = getValue(nationSubmitted, rows[nationSubmitted][1], 1)
     api.confirmGrant(
       nationSubmitted, 
       Number(year), 
@@ -210,10 +199,14 @@ function RunAlgorithm() {
           status: 'success',
           isClosable: true,
         });
-        var submittedNations = nationsSubmitted
-        submittedNations.push(createdNationSubmittedRecord(nationSubmitted))
-        setNationsSubmitted(submittedNations)
-        localStorage.setItem("nationsSubmitted", submittedNations)
+        setNationsSubmitted([
+          ...JSON.parse(localStorage.getItem("nationsSubmitted")),
+          createdNationSubmittedRecord(nationSubmitted)
+        ])
+        localStorage.setItem("nationsSubmitted", JSON.stringify([
+          ...JSON.parse(localStorage.getItem("nationsSubmitted")),
+          createdNationSubmittedRecord(nationSubmitted)
+        ]))
       } else {
         toast({
           title: 'Error saving grant',
@@ -224,17 +217,18 @@ function RunAlgorithm() {
       }
       setLoadingGrant(false)
       setSubmit(false)
+      setDollarAmount(0)
     })
   }
   
   const createdNationSubmittedRecord = (nationName) => {
-    return JSON.stringify({
+    return {
       "nationName": nationName,
       "year": year,
       "species": species,
       "quota": quota,
       "license": license,
-    })
+    }
   }
 
   const onSubmit = (e) => {
@@ -243,7 +237,10 @@ function RunAlgorithm() {
   }
 
   const nationStatus = (nationName) => {
-    return localStorage.getItem("nationsSubmitted")?.includes(createdNationSubmittedRecord(nationName))
+    const savedNationsSubmitted = JSON.parse(localStorage.getItem("nationsSubmitted")) || nationSubmitted
+    return savedNationsSubmitted.some(obj => 
+      obj.nationName === nationName && obj.year === year && obj.species === species && obj.license === license && obj.quota === quota
+    )
   }
 
   const requestDollarAmount = () => {
@@ -279,33 +276,24 @@ function RunAlgorithm() {
   }
 
   const getValue = (key, item, index) => {
-    console.log(updatedValues)
+    const updatedValues = localStorage.getItem("updatedValues") ? JSON.parse(localStorage.getItem("updatedValues")) : {}
     if (license === 0) {
-      if (key in updatedValues && "quota" in updatedValues["quota"]) {
+      if (key in updatedValues && "quota" in updatedValues[key]) {
         return updatedValues[key]["quota"]
       } 
       return item
-    } else if (quota === 0) {
-      if (key in updatedValues && "license" in updatedValues["license"]) {
+    } else if (quota === 0 || index === 3) {
+      if (key in updatedValues && "license" in updatedValues[key]) {
         return updatedValues[key]["license"]
       } 
-      return item
+      return item  
     } else {
-      if (index === 3) {
-        if (key in updatedValues && "license" in updatedValues[key]) {
-          return updatedValues[key]["license"]
-        } else {
-          return item 
-        }
-      } 
-      else {
-        if (key in updatedValues && "quota" in updatedValues[key]) {
-          return updatedValues[key]["quota"]
-        } else {
-          return item 
-        }
-      } 
-    }
+      if (key in updatedValues && "quota" in updatedValues[key]) {
+        return updatedValues[key]["quota"]
+      } else {
+        return item 
+      }
+    } 
   }
 
   return (
@@ -342,9 +330,11 @@ function RunAlgorithm() {
                   <Td>{key}</Td>
                   {value.map((item, index) => (
                     <Td key={`${key}-${index}`} isNumeric>
-                      {(index % 2 !== 1 || nationStatus(key)) ? (
+                      {(index % 2 !== 1) ? (
                         <Text>{item}</Text>
-                      ) :  (
+                      ) : (nationStatus(key)) ? 
+                      (<Text>{getValue(key, item, index)}</Text>) :
+                       (
                         <Input
                           name={`${key}-${index}`}
                           type="number"
@@ -362,7 +352,7 @@ function RunAlgorithm() {
                     {nationStatus(key) ? (
                       <CheckIcon />
                     ) : (
-                      <IconButton onClick={onSubmit} id={key} size="sm" icon={<IoIosSend id={key} />} />
+                      <IconButton onClick={onSubmit} id={key} size="sm" icon={<IoIosSend name={key} id={key} />} />
                     )}
                   </Td>
                   <Td></Td>
