@@ -1,5 +1,7 @@
 // src/components/ParallaxReplicatedWebsite.js
 import React, { useState, useEffect, Component } from 'react';
+import { useHistory } from 'react-router-dom';
+
 import {
   ChakraProvider,
   Box,
@@ -14,12 +16,21 @@ import {
   Spacer,
   Center,
   AbsoluteCenter,
+  useDisclosure,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
 } from '@chakra-ui/react';
 
 import WebsiteHeader from '../components/WebsiteHeader/WebsiteHeader';
 import Form  from '../components/Form';
 import * as api from '../modules/api'
 import NationVariableForm from '../components/NationVariableForm'
+import ApiSelect from "../components/Select"
 
 import theme from "../theme"
 import ErrorPage from './Error/Error';
@@ -69,6 +80,34 @@ const ParallaxHeroSection = ({speciesList, image, description, heading}) => {
   );
 };
 
+function ProfilePageModal({nationList}) {
+  const { isOpen, onOpen, onClose } = useDisclosure()
+  const history = useHistory()
+
+  return (
+    <>
+      <Button onClick={onOpen}>Select Nation</Button>
+
+      <Modal blockScrollOnMount={false} isOpen={isOpen} onClose={onClose}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Select Nation</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <ApiSelect list={nationList} listType="nation" onSelect={(e) => history.push(`/profile/${e.target.value}`)}></ApiSelect>
+          </ModalBody>
+          <ModalFooter>
+            <Button colorScheme='blue' mr={3} onClick={onClose}>
+              Close
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+    </>
+  )
+}
+
+
 const HomeSection = ( {speciesList, nationList} ) => {
   return (
     <Center>
@@ -87,20 +126,16 @@ const HomeSection = ( {speciesList, nationList} ) => {
           nationsList={nationList}
         />
       </Box>
-      {/* <Box flex="1" p="10">
+      <Box flex="1" p="10"  mx="center" textAlign={"center"}>
         <Heading variant={"solid"}>
-          View Historical Data
+          View Profile Pages
         </Heading>
         <Text fontSize="lg" mb="6">
-          View previous requests and allocations
+          View profile page for nations to see their assets, historical requests and grants
         </Text>
         <Spacer></Spacer>
-        <Button 
-            variant={"solid"}
-        >
-          Get Started
-        </Button>
-      </Box> */}
+        <ProfilePageModal nationList={nationList}></ProfilePageModal>
+      </Box>
     </Flex>
     </Center>
   );
@@ -152,7 +187,6 @@ class MainPage extends Component {
   updateNation = (nationName, nationVariableData) => {
     api.updateNationVariables(nationName, nationVariableData);
   }
-
 
   render () {
     return (

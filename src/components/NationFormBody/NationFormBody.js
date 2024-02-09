@@ -116,7 +116,9 @@ class NationFormBody extends Component {
       </Box>)
       : (<Progress isIndeterminate size="xs" variant="basic"></Progress>)
     }
-</VStack>);
+</VStack>
+
+);
   }
 }
 

@@ -211,3 +211,12 @@ export const confirmGrant = (nationName, year, species, requestedLicense, grante
         }))
     })
 }
+
+export const getGrant = (year) => {
+    const url = `${SERVER_URL}/grants/${year}`
+    return new Promise((resolve) => {
+        resolve(myFetch(url, {
+            method: METHOD.GET,
+        }))
+    })
+}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useReducer } from "react";
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useHistory } from 'react-router-dom';
+
 
 import {
   Box,
@@ -52,7 +53,7 @@ function RunAlgorithm() {
   const [nationsSubmitted, setNationsSubmitted] = useState([])
   const [loadingGrant, setLoadingGrant] = useState(false)
   const [dollarAmount, setDollarAmount] = useState(0)
-
+  const history = useHistory();
   const toast = useToast();
   const [, forceUpdate] = useReducer(x => x + 1, 0);
 
@@ -136,7 +137,15 @@ function RunAlgorithm() {
   }
 
   useEffect(() => {
+    const unlisten = history.listen(() => {
+      localStorage.removeItem("userData")
+      localStorage.removeItem("algorithmResults")
+  })
+}, [])
+
+  useEffect(() => {
     const localAlgorithmResults = JSON.parse(localStorage.getItem("algorithmResults"));
+    console.log(localAlgorithmResults)
     var rows = localStorage.getItem("rows")
     var headers = localStorage.getItem("headers")
     if (!localAlgorithmResults || !rows || !headers || localAlgorithmResults["quota"] !== quota || localAlgorithmResults["species"] !== species) {
@@ -180,13 +189,13 @@ function RunAlgorithm() {
     setLoadingGrant(true)
     var finalizedQuota = 0;
     var finalizedLicense = 0;
-    finalizedLicense = getValue(nationSubmitted, (quota > 0 && license > 0) ? rows[nationSubmitted][3] : rows[nationSubmitted][1], 3)
+    finalizedLicense = getValue(nationSubmitted, (quota > 0 && license > 0) ? rows[nationSubmitted][3] : (license > 0) ? rows[nationSubmitted][1] : 0, 3)
     finalizedQuota = getValue(nationSubmitted, rows[nationSubmitted][1], 1)
     api.confirmGrant(
       nationSubmitted, 
       Number(year), 
       species,
-      Number(license > 0 && quota > 0 ? rows[nationSubmitted][2] : license > 0 ? rows[nationSubmitted][0] : 0),
+      Number(license > 0 && quota > 0 ? rows[nationSubmitted][3] : license > 0 ? rows[nationSubmitted][0] : 0),
       Number(finalizedLicense),
       Number(quota > 0 ? rows[nationSubmitted][0] : 0),
       Number(finalizedQuota),
@@ -238,9 +247,11 @@ function RunAlgorithm() {
 
   const nationStatus = (nationName) => {
     const savedNationsSubmitted = JSON.parse(localStorage.getItem("nationsSubmitted")) || nationSubmitted
-    return savedNationsSubmitted.some(obj => 
-      obj.nationName === nationName && obj.year === year && obj.species === species && obj.license === license && obj.quota === quota
-    )
+    if (savedNationsSubmitted) {
+      return savedNationsSubmitted.some(obj => 
+        obj.nationName === nationName && obj.year === year && obj.species === species && obj.license === license && obj.quota === quota
+      )
+    }
   }
 
   const requestDollarAmount = () => {

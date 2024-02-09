@@ -13,8 +13,8 @@ export const theme = extendTheme({
       variants: {
         solid: {
           color: colors.main,
-          as: "h2",
-          size: "xl", 
+          as: "h3",
+          size: "lg", 
           mb: "4"
         }
       }

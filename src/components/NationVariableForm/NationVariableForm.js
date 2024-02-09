@@ -189,6 +189,7 @@ function Form({ speciesList, nationsList }) {
           })
         })
         }
+        setFundsUpdated(false)
       } else if (updateType === NATION_REQUEST_UPDATE_TYPE){
         api.updateNationRequest(
           selectedNation,
