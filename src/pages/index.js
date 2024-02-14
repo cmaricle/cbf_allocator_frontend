@@ -24,6 +24,10 @@ import {
   ModalFooter,
   ModalBody,
   ModalCloseButton,
+  SimpleGrid,
+  Divider,
+  Grid,
+  GridItem,
 } from '@chakra-ui/react';
 
 import WebsiteHeader from '../components/WebsiteHeader/WebsiteHeader';
@@ -76,6 +80,7 @@ const ParallaxHeroSection = ({speciesList, image, description, heading}) => {
           >
           </Form>
       </Container>
+      <Divider/>
     </Box>
   );
 };
@@ -110,34 +115,44 @@ function ProfilePageModal({nationList}) {
 
 const HomeSection = ( {speciesList, nationList} ) => {
   return (
-    <Center>
-    <Flex alignItems="center" minWidth='max-content'>
+    <Grid   
+    templateRows='repeat(1, 1fr)'
+    templateColumns='repeat(10, 1fr)'
+    p={2}
+    gap={6}
+    >
       {/* Left-hand side */}
-      <Box flex="1" p="10" mx="center" textAlign={"center"}>
-        <Heading variant={"solid"}  >
-          Update Data
-        </Heading>
-        <Text fontSize="lg" mb="6">
-        Update Nation yearly request data or modify Nation variables
-        </Text>
-        <Spacer></Spacer>
-        <NationVariableForm
-          speciesList={speciesList}
-          nationsList={nationList}
-        />
-      </Box>
-      <Box flex="1" p="10"  mx="center" textAlign={"center"}>
-        <Heading variant={"solid"}>
-          View Profile Pages
-        </Heading>
-        <Text fontSize="lg" mb="6">
-          View profile page for nations to see their assets, historical requests and grants
-        </Text>
-        <Spacer></Spacer>
-        <ProfilePageModal nationList={nationList}></ProfilePageModal>
-      </Box>
-    </Flex>
-    </Center>
+      <GridItem colSpan={1}></GridItem>
+    <GridItem colSpan={4}>
+        <Box flex="1" p="10" mx="center" textAlign={"center"} borderWidth='1px' borderRadius='lg'>
+          <Heading variant={"solid"}  >
+            Update Data
+          </Heading>
+          <Text fontSize="lg" mb="6">
+          Update Nation yearly request data or modify Nation variables
+          </Text>
+          <Spacer></Spacer>
+          <NationVariableForm
+            speciesList={speciesList}
+            nationsList={nationList}
+          />
+        </Box>
+    </GridItem>
+
+    <GridItem colSpan={4}>
+        <Box flex="1" p="10"  mx="center" textAlign={"center"} borderWidth='1px' borderRadius='lg'>
+          <Heading variant={"solid"}>
+            View Profile Pages
+          </Heading>
+          <Text fontSize="lg" mb="6">
+            View profile page for nations to see their requests and assests
+          </Text>
+          <Spacer></Spacer>
+          <ProfilePageModal nationList={nationList}></ProfilePageModal>
+        </Box>
+    </GridItem>
+    <GridItem colSpan={1}></GridItem>
+    </Grid>
   );
 };
 

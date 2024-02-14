@@ -181,6 +181,7 @@ function Form({ speciesList, nationsList }) {
         }).then((result) => {
           setFundsUpdated(false)
           setConfirmed(false)
+          setLoading(false)
           parseResponse(result)
         }).catch((exception) => {
           setFundsUpdated(false)
