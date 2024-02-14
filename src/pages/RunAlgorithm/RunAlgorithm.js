@@ -379,16 +379,21 @@ function RunAlgorithm() {
   }
 
   const submitButtonDisabled = (key, row) => {
-    var result = false
+    var result = []
     row.forEach(function(item, index) {
-      if (index % 1 === 0) {
+      if (index % 2 !== 0) {
         const value = getValue(key, item, index)
-        if (value > row[index - 1] || value === 0) {
-          result = true
+        if (value > row[index - 1]) {
+          result.push(true)
+        } else if (value === 0) {
+          result.push(0)
         }
-      }
+         else {
+          result.push(false)
+        }
+      } 
     })
-    return result
+    return result.includes(true) || result.length === 2 ? (result[0] === 0 && result[1] === 0) : result[0] === 0
   }
 
   return (
@@ -432,7 +437,9 @@ function RunAlgorithm() {
                       ) : (nationStatus(key)) ? 
                       (<Text>{getValue(key, item, index)}</Text>) :
                        (
-                        <FormControl isInvalid={isInvalidValue(key, item, index)}>
+                        <FormControl 
+                          isInvalid={isInvalidValue(key, item, index)}
+                        >
                         <NumberInput
                           name={`${key}-${index}`}
                           min={0}
