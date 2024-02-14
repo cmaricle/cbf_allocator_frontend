@@ -128,7 +128,7 @@ class NationFormRequestBody extends Component {
         <FormControl isInvalid={this.props.isInvalid(this.props.quotaValue, MAX_QUOTA_VALUE)}>
           <SimpleGrid columns={2} spacing={10}>
               <FormLabel>
-                Enter Quota
+                Enter Quota (lbs)
               </FormLabel>
                 { this.state.loading ?
                 (<Spinner/>) :
@@ -136,7 +136,7 @@ class NationFormRequestBody extends Component {
                   <NumberInput
                     min={0}
                     max={MAX_QUOTA_VALUE}
-                    value={this.props.quotaValue}
+                    value={this.props.quotaValue.toLocaleString()}
                     onChange={(_, value) => this.updateQuotaValue(value)}
                   >
                   <NumberInputField/>

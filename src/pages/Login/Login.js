@@ -24,6 +24,7 @@ import {
   Heading,
 } from '@chakra-ui/react';
 import WebsiteHeader from '../../components/WebsiteHeader/WebsiteHeader';
+import AlertPopUp from '../../components/AlertPopUp/AlertPopUp';
 import theme from '../../theme';
 import * as api from '../../modules/api';
 import { useAuth } from '../../AuthContext';
@@ -143,23 +144,12 @@ const LoginPage = () => {
               </ChakraLink>
             </Stack>
           </Card>
-          <AlertDialog isOpen={sessionTimeout} onClose={() => setSessionTimeout(false)}>
-            <AlertDialogOverlay>
-              <AlertDialogContent>
-                <AlertDialogHeader fontSize="lg" fontWeight="bold">
-                  Session Timeout
-                </AlertDialogHeader>
-                <AlertDialogBody>
-                  Your session has timed out. Please log in again.
-                </AlertDialogBody>
-                <AlertDialogFooter>
-                  <Button colorScheme="blue" onClick={() => setSessionTimeout(false)}>
-                    Close
-                  </Button>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialogOverlay>
-          </AlertDialog>
+          <AlertPopUp
+            isOpen={sessionTimeout}
+            header="Session Timeout"
+            dialog="Your session has timed out. Please log in again."
+            onClose={() => setSessionTimeout(false)}
+          />
         </Flex>
         </>
         )

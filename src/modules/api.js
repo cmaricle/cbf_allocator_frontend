@@ -192,3 +192,41 @@ export const createUser = (username, password, email) => {
             })}))
     })
 }
+
+export const confirmGrant = (nationName, year, species, requestedLicense, grantedLicense, requestedQuota, grantedQuota, quotaCost, licenseCost) => {
+    const url = `${SERVER_URL}/grant`
+    return new Promise((resolve) => {
+        resolve(myFetch(url, {
+            method: METHOD.POST,
+            body: JSON.stringify({
+                "year": year,
+                "species": species,
+                "nation_name": nationName,
+                "requested_license": requestedLicense,
+                "granted_license": grantedLicense,
+                "requested_quota": requestedQuota,
+                "granted_quota": grantedQuota,
+                "quota_cost": quotaCost,
+                "license_cost": licenseCost,
+            })
+        }))
+    })
+}
+
+export const getGrant = (year) => {
+    const url = `${SERVER_URL}/grants/${year}`
+    return new Promise((resolve) => {
+        resolve(myFetch(url, {
+            method: METHOD.GET,
+        }))
+    })
+}
+
+export const getFunds = (nationName) => {
+    const url = `${SERVER_URL}/funds/${nationName}`
+    return new Promise((resolve) => {
+        resolve(myFetch(url, {
+            method: METHOD.GET,
+        }))
+    })
+}

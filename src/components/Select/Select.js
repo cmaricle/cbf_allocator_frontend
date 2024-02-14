@@ -16,7 +16,13 @@ class ApiSelect extends Component {
     this.state = {
       list: this.props.list,
       loading: true,
+      value: this.props.defaultValue,
     }
+  }
+
+  onSelect = (e) => {
+    this.setState({value: e.target.value})
+    this.props.onSelect(e)
   }
 
   render() {
@@ -25,8 +31,9 @@ class ApiSelect extends Component {
       <Select 
         hidden={this.props.hidden} 
         placeholder={`Select ${this.props.listType}`} 
-        onChange={this.props.onSelect}
+        onChange={this.onSelect}
         variant={"basic"}
+        value={this.state.value}
       >
         {
           this.props.list ? 
@@ -45,6 +52,7 @@ ApiSelect.propTypes = {
   list: PropTypes.array.isRequired,
   listType: PropTypes.string.isRequired,
   onSelect: PropTypes.func.isRequired,
+  defaultValue: PropTypes.string,
   hidden: PropTypes.bool,
 }
 

@@ -50,6 +50,11 @@ class NationFormBody extends Component {
       )
     })
   }
+  
+  format = (val) => {
+    console.log(val)
+    return val === "" ? "0%" : val + '%';
+  }
 
   render() {
     return (
@@ -63,36 +68,35 @@ class NationFormBody extends Component {
     </Box>
     <Box hidden={this.props.nationVariablesHidden}>
       <FormControl isInvalid={this.props.isInvalid(this.props.fundsInputVariable)}>
-        <FormLabel>Funds</FormLabel>
+        <FormLabel>Funds Percentage</FormLabel>
         <Flex>
           <SimpleGrid columns={2}>
-            { this.props.fundsInputVariable === 0 || this.props.fundsUpdated ?
+            { this.props.fundsInputVariable === 0 || this.props.fundsUpdated || true?
               (<NumberInput 
                 step={0.5} 
                 clampValueOnBlur={false} 
-                value={this.props.fundsInputVariable} 
+                value={this.format(this.props.fundsInputVariable)} 
                 precision={2} 
                 min={0} 
                 max={100} 
-                onChange={this.props.handleInputChange}
-                maxW={24}
+                onChange={(e) => this.props.handleInputChange(e)}
                 >
                 <NumberInputField />
               </NumberInput>) :
-              (<Text p={3}>{this.props.fundsInputVariable}</Text>)
+              (<Text p={3}>{this.props.fundsInputVariable}%</Text>)
           }
           <Center height="auto">
           <Spinner p={1} hidden={!this.props.loadingNation}/>
           </Center>
           </SimpleGrid>
           </Flex>
-          { this.props.fundsInputVariable === 0 ?
+           { this.props.fundsInputVariable == 0 || this.props.fundsUpdated ?
            (this.props.isInvalid(this.props.fundsInputVariable) ? (
-              <FormErrorMessage>Please entler valid percentage.</FormErrorMessage>
+              <FormErrorMessage>Please enter valid percentage.</FormErrorMessage>
               ) : (
               <FormHelperText>Enter a percentage.</FormHelperText>
               )
-           ) : (<></>)
+           ) : <React.Fragment></React.Fragment>
           }
     </FormControl>
     </Box>
@@ -116,7 +120,9 @@ class NationFormBody extends Component {
       </Box>)
       : (<Progress isIndeterminate size="xs" variant="basic"></Progress>)
     }
-</VStack>);
+</VStack>
+
+);
   }
 }
 

@@ -15,6 +15,8 @@ import UserVerification from "./pages/UserVerication/UserVerication"
 import { useAuth } from './AuthContext';
 import CreateUser from './components/CreateUser/CreateUser';
 import ErrorPage from './pages/Error';
+import NotFound from './pages/NotFound'
+import NationPage from './pages/NationPage/NationPage';
 
 
 const PrivateRoute = ({ component: Component, ...rest }) => {
@@ -45,6 +47,8 @@ class App extends Component {
 					<Route path="/create-user" component={CreateUser}/>
 					<Route path="/user-verification" component={UserVerification} />
 					<Route path="/error" component={ErrorPage}/>
+					<Route path="/404" component={NotFound} />
+					<PrivateRoute path="/profile/:id" component={NationPage}/>
 					<PrivateRoute path="/run-algorithm" component={RunAlgorithm} />
 					<PrivateRoute path="/" component={MainPage}/>
 				</Switch>
