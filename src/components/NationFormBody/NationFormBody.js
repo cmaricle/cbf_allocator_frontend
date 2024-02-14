@@ -50,6 +50,11 @@ class NationFormBody extends Component {
       )
     })
   }
+  
+  format = (val) => {
+    console.log(val)
+    return val === "" ? "0%" : val + '%';
+  }
 
   render() {
     return (
@@ -66,16 +71,15 @@ class NationFormBody extends Component {
         <FormLabel>Funds Percentage</FormLabel>
         <Flex>
           <SimpleGrid columns={2}>
-            { this.props.fundsInputVariable === 0 || this.props.fundsUpdated ?
+            { this.props.fundsInputVariable === 0 || this.props.fundsUpdated || true?
               (<NumberInput 
                 step={0.5} 
                 clampValueOnBlur={false} 
-                value={this.props.fundsInputVariable} 
+                value={this.format(this.props.fundsInputVariable)} 
                 precision={2} 
                 min={0} 
                 max={100} 
-                onChange={this.props.handleInputChange}
-                maxW={24}
+                onChange={(e) => this.props.handleInputChange(e)}
                 >
                 <NumberInputField />
               </NumberInput>) :
@@ -86,13 +90,13 @@ class NationFormBody extends Component {
           </Center>
           </SimpleGrid>
           </Flex>
-          { this.props.fundsInputVariable === 0 ?
+           { this.props.fundsInputVariable == 0 || this.props.fundsUpdated ?
            (this.props.isInvalid(this.props.fundsInputVariable) ? (
-              <FormErrorMessage>Please entler valid percentage.</FormErrorMessage>
+              <FormErrorMessage>Please enter valid percentage.</FormErrorMessage>
               ) : (
               <FormHelperText>Enter a percentage.</FormHelperText>
               )
-           ) : (<></>)
+           ) : <React.Fragment></React.Fragment>
           }
     </FormControl>
     </Box>

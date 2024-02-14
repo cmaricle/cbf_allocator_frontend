@@ -17,13 +17,6 @@ import {
   VStack,
   Divider,
   ChakraProvider,
-  AlertDialog,
-  AlertDialogBody,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogContent,
-  AlertDialogOverlay,
-  ButtonGroup,
 } from '@chakra-ui/react'
 
 import * as api from '../../modules/api'
@@ -58,7 +51,11 @@ function Form({ speciesList, nationsList }) {
   const [loadingNation, setLoadingNation] = useState(false);
 
   function isInvalid (value, maxValue=100) {
-    if(value > maxValue || value < 0 || typeof(value) == "string") {
+    if (String(value).slice(-1) === ".") {
+      return true
+    }
+    if(value > maxValue || value < 0 ) {
+      console.log("here")
       return true;
     }
     return false;
@@ -92,6 +89,8 @@ function Form({ speciesList, nationsList }) {
         setFundsInputVariable(Number(variables["funds"]))
         if(variables["funds"] !== 0) {
           setConfirmed(true);
+        } else {
+          setConfirmed(false)
         }
         if (variables["availability"].constructor !== Array){
           variables["availability"] = []
@@ -122,12 +121,16 @@ function Form({ speciesList, nationsList }) {
   }
 
   function handleInputChange(event) {
+    var strVal = String(event)
+    strVal.replace('/^0*(\S+)/', '')
+    if (strVal === String(fundsInputVariable) || strVal.slice(-2) === "..") {
+      var value = strVal.substring(0, strVal.length - 1)
+    } else {
+      value = strVal  
+    }
     setUserUpdated(true);
     setFundsUpdated(true);
-    if (event.slice(-1) !== ".") {
-      event = Number(event)
-    }
-    setFundsInputVariable(event);
+    setFundsInputVariable(value.slice(-1) !== "." ? Number(value) : value);
   }
 
   function handleSpeciesInputVariable(event) {
@@ -173,12 +176,14 @@ function Form({ speciesList, nationsList }) {
         if (confirmed) {
           api.updateNationVariables(selectedNation, {
           "_nation_name": selectedNation, 
-          "funds": fundsInputVariable, 
+          "funds": Number(fundsInputVariable),
           "availability": speciesInputVariable
         }).then((result) => {
+          setFundsUpdated(false)
           setConfirmed(false)
           parseResponse(result)
         }).catch((exception) => {
+          setFundsUpdated(false)
           setLoading(false);
           setConfirmed(false)
           toast({
@@ -189,7 +194,6 @@ function Form({ speciesList, nationsList }) {
           })
         })
         }
-        setFundsUpdated(false)
       } else if (updateType === NATION_REQUEST_UPDATE_TYPE){
         api.updateNationRequest(
           selectedNation,

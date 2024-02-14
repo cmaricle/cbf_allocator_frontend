@@ -19,7 +19,7 @@ class AlertPopUp extends Component {
       <AlertDialog isOpen={this.props.isOpen}>
       <AlertDialogOverlay>
         <AlertDialogContent>
-          <AlertDialogHeader fontSize="lg" fontWeight="bold">
+          <AlertDialogHeader fontSize="large" fontWeight="bold">
             {this.props.header}
           </AlertDialogHeader>
           <AlertDialogBody>
@@ -57,7 +57,6 @@ AlertPopUp.propTypes = {
   onCancel: PropTypes.func,
   onClose: PropTypes.func,
   header: PropTypes.string.isRequired,
-  dialog: PropTypes.string.isRequired || PropTypes.object.isRequired,
   confirmedButtonDisabled: PropTypes.bool = false,
   loading: PropTypes.bool = false
 }

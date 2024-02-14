@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useReducer } from "react";
-import { Link, useLocation, useHistory } from 'react-router-dom';
+import { Link as ReactRouterLink, useLocation, useHistory } from 'react-router-dom';
 
 
 import {
@@ -22,10 +22,20 @@ import {
   Text,
   IconButton,
   useToast,
-  FormLabel,
+  Link as ChakraLink,
+  Divider,
+  Heading,
+  SimpleGrid,
   NumberInput,
   NumberInputField,
+  FormErrorMessage,
+  FormHelperText,
   FormControl,
+  NumberIncrementStepper,
+  NumberInputStepper,
+  NumberDecrementStepper,
+  Tooltip,
+  Spacer,
 } 
 from '@chakra-ui/react'
 import { IoIosSend } from "react-icons/io";
@@ -40,7 +50,7 @@ import theme from "../../theme";
 
 function RunAlgorithm() {
   const location = useLocation();
-  const {species, quota, license, year, speciesList, loading} = location.state;
+  const {species, quota, license, quotaCost, licenseCost, year, speciesList, loading} = location.state;
   const [algorithmResults, setAlgorithmResults] = useState({});
   const [noResults, setNoResults] = useState(false);
   const [error, setError] = useState(false);
@@ -52,7 +62,8 @@ function RunAlgorithm() {
   const [nationSubmitted, setNationSubmitted] = useState("")
   const [nationsSubmitted, setNationsSubmitted] = useState([])
   const [loadingGrant, setLoadingGrant] = useState(false)
-  const [dollarAmount, setDollarAmount] = useState(0)
+  const [checkingFunds, setCheckingFunds] = useState(false)
+  const [insufficientFunds, setInsufficientFunds] = useState(false)
   const history = useHistory();
   const toast = useToast();
   const [, forceUpdate] = useReducer(x => x + 1, 0);
@@ -65,6 +76,8 @@ function RunAlgorithm() {
           "species": species, 
           "license": license, 
           "quota": quota, 
+          "quota_cost": quotaCost, 
+          "license_cost": licenseCost,
           "year": year,
         }
       ).then((response) => {
@@ -138,14 +151,26 @@ function RunAlgorithm() {
 
   useEffect(() => {
     const unlisten = history.listen(() => {
-      localStorage.removeItem("userData")
       localStorage.removeItem("algorithmResults")
+      localStorage.removeItem("nationsSubmitted")
   })
-}, [])
+  }, [])
+
+  useEffect(() => {
+    window.addEventListener("beforeunload", alertUser);
+    return () => {
+      window.removeEventListener("beforeunload", alertUser);
+    };
+  }, []);
+  
+  const alertUser = (e) => {
+    if (Object.keys(updatedValues).length !== 0) {
+      e.preventDefault();
+    }
+  }
 
   useEffect(() => {
     const localAlgorithmResults = JSON.parse(localStorage.getItem("algorithmResults"));
-    console.log(localAlgorithmResults)
     var rows = localStorage.getItem("rows")
     var headers = localStorage.getItem("headers")
     if (!localAlgorithmResults || !rows || !headers || localAlgorithmResults["quota"] !== quota || localAlgorithmResults["species"] !== species) {
@@ -156,13 +181,12 @@ function RunAlgorithm() {
       setAlgorithmResults(localAlgorithmResults)
       setIsLoading(false);
     }
-    console.log(isLoading)
   }, [quota, species])
 
   const onInputChange = (e) => {
     const changedRow = e.target.name;
     const nationName = changedRow.split("-")[0]
-    var updatedNationValues = localStorage.getItem("updatedValues") ? JSON.parse(localStorage.getItem("updatedValues")) : updatedValues
+    var updatedNationValues = updatedValues
     var val = e.target.value;
     if (!(nationName in updatedNationValues)) {
       updatedNationValues[nationName] = {}
@@ -180,7 +204,6 @@ function RunAlgorithm() {
       updatedNationValues[nationName]["quota"] = Number(val)
     }
     setUpdatedValues(updatedNationValues)
-    localStorage.setItem("updatedValues", JSON.stringify(updatedNationValues))
     forceUpdate()
   }
 
@@ -189,8 +212,8 @@ function RunAlgorithm() {
     setLoadingGrant(true)
     var finalizedQuota = 0;
     var finalizedLicense = 0;
-    finalizedLicense = getValue(nationSubmitted, (quota > 0 && license > 0) ? rows[nationSubmitted][3] : (license > 0) ? rows[nationSubmitted][1] : 0, 3)
-    finalizedQuota = getValue(nationSubmitted, rows[nationSubmitted][1], 1)
+    finalizedLicense = license === 0 ? 0 : getValue(nationSubmitted, (quota > 0 && license > 0) ? rows[nationSubmitted][3] : (license > 0) ? rows[nationSubmitted][1] : 0, 3)
+    finalizedQuota = quota === 0 ? 0 : getValue(nationSubmitted, rows[nationSubmitted][1], 1)
     api.confirmGrant(
       nationSubmitted, 
       Number(year), 
@@ -199,7 +222,8 @@ function RunAlgorithm() {
       Number(finalizedLicense),
       Number(quota > 0 ? rows[nationSubmitted][0] : 0),
       Number(finalizedQuota),
-      Number(dollarAmount),
+      Number(quotaCost),
+      Number(licenseCost)
     ).then((response) => {
       if (response["statusCode"] === 200) {
         toast({
@@ -208,14 +232,20 @@ function RunAlgorithm() {
           status: 'success',
           isClosable: true,
         });
-        setNationsSubmitted([
-          ...JSON.parse(localStorage.getItem("nationsSubmitted")),
-          createdNationSubmittedRecord(nationSubmitted)
-        ])
-        localStorage.setItem("nationsSubmitted", JSON.stringify([
-          ...JSON.parse(localStorage.getItem("nationsSubmitted")),
-          createdNationSubmittedRecord(nationSubmitted)
-        ]))
+        const nationRecord = createdNationSubmittedRecord(nationSubmitted)
+        if (localStorage.getItem("nationsSubmitted") || nationsSubmitted) {
+          setNationsSubmitted([
+            ...nationsSubmitted || localStorage.getItem("nationsSubmitted"),
+            nationRecord
+          ])
+          localStorage.setItem("nationsSubmitted", JSON.stringify([
+            ...nationsSubmitted || localStorage.getItem("nationsSubmitted"),
+            nationRecord
+          ]))
+        } else {
+          setNationsSubmitted([nationRecord])
+          localStorage.setItem("nationSubmitted", JSON.stringify([nationRecord]))
+        }
       } else {
         toast({
           title: 'Error saving grant',
@@ -226,7 +256,6 @@ function RunAlgorithm() {
       }
       setLoadingGrant(false)
       setSubmit(false)
-      setDollarAmount(0)
     })
   }
   
@@ -242,11 +271,26 @@ function RunAlgorithm() {
 
   const onSubmit = (e) => {
     setSubmit(true);
-    setNationSubmitted(e.target.id)
+    setCheckingFunds(true);
+    const nationSubmitted = e.target.id
+    setNationSubmitted(nationSubmitted)
+    
+    const finalizedLicense = license !== 0 && Object.keys(rows).length > 0 && nationSubmitted ? getValue(nationSubmitted, (quota > 0 && license > 0) ? rows[nationSubmitted][3] : (license > 0) ? rows[nationSubmitted][1] : 0, 3) : 0
+    const finalizedQuota = quota !== 0 && Object.keys(rows).length > 0 && nationSubmitted ? getValue(nationSubmitted, rows[nationSubmitted][1], 1) : 0
+    const totalCost = finalizedQuota * quotaCost + finalizedLicense * licenseCost
+    setInsufficientFunds(false)
+    api.getFunds(nationSubmitted).then(response => {
+      if (response["statusCode"] === 200) {
+        if (Number(response["body"]["response"]) < totalCost) {
+          setInsufficientFunds(true)
+        }
+      }
+      setCheckingFunds(false)
+    })
   }
 
   const nationStatus = (nationName) => {
-    const savedNationsSubmitted = JSON.parse(localStorage.getItem("nationsSubmitted")) || nationSubmitted
+    const savedNationsSubmitted = JSON.parse(localStorage.getItem("nationsSubmitted")) || nationsSubmitted
     if (savedNationsSubmitted) {
       return savedNationsSubmitted.some(obj => 
         obj.nationName === nationName && obj.year === year && obj.species === species && obj.license === license && obj.quota === quota
@@ -254,32 +298,53 @@ function RunAlgorithm() {
     }
   }
 
-  const requestDollarAmount = () => {
-    const format = (val) => {
-      var strVal = String(val)
-      strVal.replace('/^0*(\S+)/', '')
-      return `$` + Number(strVal)
-    }
-    const parse = (val) => {
-      val.replace(/^\$/, '')
-      val.replace('/^0*(\S+)/', '')
-      if (Number(val) !== NaN && !(val.includes("e"))) {
-        return val
-      } else {
-        return dollarAmount
-      }
-    }
+  const getConfirmForType = (type, finalizedAmount, cost) => {
+    return (<Box p={2}>
+      <SimpleGrid columns={3}>
+      <Heading as="h5" size="s">{`${type} Amount`}</Heading>
+      <Divider orientation='vertical' />
+      <Text>{finalizedAmount.toLocaleString()}</Text>
+      </SimpleGrid>
+      <SimpleGrid columns={3}>
+      <Heading as="h5" size="s">Cost</Heading>
+      <Divider orientation='vertical' />
+      <Text>${(finalizedAmount * cost).toLocaleString()}</Text>
+      </SimpleGrid>
+    </Box>)
+  }
 
-    return (
-      <Box>
-        <FormControl>
-        <FormLabel>Please enter dollar amount for this quota:</FormLabel>
-        <NumberInput min={0} value={format(dollarAmount)} onChange={(val) => setDollarAmount(parse(val))}>
-          <NumberInputField></NumberInputField>
-        </NumberInput>
-        </FormControl>
-      </Box>
-    )
+  function Confirm () {
+      const finalizedLicense = license !== 0 && Object.keys(rows).length > 0 && nationSubmitted ? getValue(nationSubmitted, (quota > 0 && license > 0) ? rows[nationSubmitted][3] : (license > 0) ? rows[nationSubmitted][1] : 0, 3) : 0
+      const finalizedQuota = quota !== 0 && Object.keys(rows).length > 0 && nationSubmitted ? getValue(nationSubmitted, rows[nationSubmitted][1], 1) : 0
+      const totalCost = finalizedQuota * quotaCost + finalizedLicense * licenseCost
+
+      return (
+        !insufficientFunds && !checkingFunds ? 
+        <Box>
+          {
+            finalizedQuota !== 0 ? 
+            getConfirmForType("Quota", finalizedQuota, quotaCost)
+            : <></> }
+          <Divider hidden={!finalizedLicense || !finalizedQuota}/>
+          {
+            finalizedLicense !== 0 ?
+            getConfirmForType("License", finalizedLicense, licenseCost) : <></>
+          }
+          {
+            finalizedLicense && finalizedQuota ? 
+            <Box p={2}>
+            <Divider/>
+            <SimpleGrid columns={3}>
+              <Heading as="h5" size="s">Total Amount</Heading>
+              <Divider orientation='vertical' />
+              <Text>${(totalCost).toLocaleString()}</Text>
+            </SimpleGrid>
+            </Box> : <></>
+          }
+        </Box> :
+        checkingFunds ? <Progress isIndeterminate size="xs" variant="basic"></Progress> :
+        <Alert status="error"><AlertIcon/>Insufficient Funds!</Alert>
+      )
   }
 
   const format = (val) => {
@@ -289,7 +354,6 @@ function RunAlgorithm() {
   }
 
   const getValue = (key, item, index) => {
-    const updatedValues = localStorage.getItem("updatedValues") ? JSON.parse(localStorage.getItem("updatedValues")) : {}
     if (license === 0) {
       if (key in updatedValues && "quota" in updatedValues[key]) {
         return updatedValues[key]["quota"]
@@ -307,6 +371,23 @@ function RunAlgorithm() {
         return item 
       }
     } 
+  }
+
+  const isInvalidValue = (key, item, index) => {
+    return Number(format(getValue(key, item, index))) > Number(rows[key][index - 1])
+  }
+
+  const submitButtonDisabled = (key, row) => {
+    var result = false
+    row.forEach(function(item, index) {
+      if (index % 1 === 0) {
+        const value = getValue(key, item, index)
+        if (value > row[index - 1] || value === 0) {
+          result = true
+        }
+      }
+    })
+    return result
   }
 
   return (
@@ -331,7 +412,9 @@ function RunAlgorithm() {
               <Tr>
                 {
                   rowHeaders.map((header, index) => (
-                    <Th isNumeric={index !== 0} key={`header-${index}`}>{header}</Th>
+                    header === "Requested Quota" ? <Tooltip placement="top" label="Remaining unfufilled quota for year">
+                      <Th isNumeric key={`header-${index}`}>{header}</Th>
+                    </Tooltip> : <Th isNumeric={index !== 0} key={`header-${index}`}>{header}</Th>
                   ))
                 }
               </Tr>
@@ -340,39 +423,52 @@ function RunAlgorithm() {
             {
               Object.entries(rows).map(([key, value]) => (
                 <Tr key={key}>
-                  <Td>{key}</Td>
+                  <Td><ChakraLink to={`/profile/${key}`} as={ReactRouterLink} target="_blank" rel="noopener noreferrer">{key}</ChakraLink></Td>
                   {value.map((item, index) => (
-                    <Td key={`${key}-${index}`} isNumeric>
+                    <Td key={`${key}-${index}`} isNumeric={true}>
                       {(index % 2 !== 1) ? (
                         <Text>{item}</Text>
                       ) : (nationStatus(key)) ? 
                       (<Text>{getValue(key, item, index)}</Text>) :
                        (
-                        <Input
+                        <FormControl isInvalid={isInvalidValue(key, item, index)}>
+                        <NumberInput
                           name={`${key}-${index}`}
-                          type="number"
                           min={0}
-                          value={format(getValue(key, item, index))}
-                          maxW={24}
-                          onChange={onInputChange}
-                        />
-                      
+                          max={Number(rows[key][index - 1])}
+                          keepWithinRange={true}
+                          value={Number(format(getValue(key, item, index)))}
+                          onInput={onInputChange}
+                        ><NumberInputField/>  
+                    </NumberInput>
+                    </FormControl>
                       )
                       }
+                      
                     </Td>
                   ))}
                   <Td isNumeric>
                     {nationStatus(key) ? (
                       <CheckIcon />
                     ) : (
-                      <IconButton onClick={onSubmit} id={key} size="sm" icon={<IoIosSend name={key} id={key} />} />
+                      <Tooltip 
+                        hidden={!submitButtonDisabled(key, value)} 
+                        label={"Grant must be greater than 0 and less than or equal to requested value"}
+                      >
+                      <IconButton 
+                        onClick={onSubmit} 
+                        id={key} 
+                        size="sm" 
+                        icon={<IoIosSend name={key} id={key} />} 
+                        isDisabled={submitButtonDisabled(key, value)}
+                      />
+                      </Tooltip>
                     )}
                   </Td>
                   <Td></Td>
                 </Tr>
               ))
             }
-
             </Tbody>
           </Table>
         </TableContainer>)
@@ -390,13 +486,13 @@ function RunAlgorithm() {
     </GridItem>
     </Grid>
     <AlertPopUp 
-      isOpen={submit} 
-      onCancel={(e) => {setSubmit(false); setDollarAmount(0)}} 
+      isOpen={submit && nationSubmitted !== ""} 
+      onCancel={(e) => {setSubmit(false);}} 
       onConfirm={submitGrant}
-      header="Are you sure?"
-      dialog={requestDollarAmount()}
+      confirmedButtonDisabled={checkingFunds || insufficientFunds}
+      header="Confirm Grant Approval"
+      dialog={<Confirm/>}
       loading={loadingGrant}
-      confirmedButtonDisabled={dollarAmount <= 0}
     />
     </ChakraProvider>
   );

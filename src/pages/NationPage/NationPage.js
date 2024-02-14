@@ -18,7 +18,8 @@ import { Box, ChakraProvider, Container, Heading, SimpleGrid, TableContainer,
   StatNumber,
   Spacer,
   StatHelpText,
-  Card, } from "@chakra-ui/react";
+  Card,
+  Tooltip, } from "@chakra-ui/react";
 
 
 import * as api from "../../modules/api"
@@ -76,9 +77,9 @@ class NationPage extends Component {
         window.location.href = "/404"
       }
       this.getGrants(this.state.year, this.state.nationName, this.state.grants)
-      var requests = JSON.parse(localStorage.getItem("requests")) 
-      this.setState({"requests": requests})
-      this.getRequests(this.state.year, requests);
+      // var requests = JSON.parse(localStorage.getItem("requests")) 
+      // this.setState({"requests": requests})
+      this.getRequests(this.state.year, speciesList, {});
       this.getNationVariables(this.state.nationName, this.state.nationVariables)
 
     }).catch(exception => {
@@ -86,15 +87,22 @@ class NationPage extends Component {
     })
   }
 
-  getRequests = (year, request) => {
-    if (Object.keys(request).length === 0) {
-      const requestsPromises = this.state.speciesList.map(species => {
+  componentWillUnmount() {
+    localStorage.removeItem("requests")
+    localStorage.removeItem("grants")
+    localStorage.removeItem("nationVariables")
+  }
+  
+  
+  getRequests = (year, species, request) => {
+    if (!request || Object.keys(request).length === 0) {
+      const requestsPromises = species.map(value => {
         this.setState({requestsLoading: true})
-        return api.getYearRequestForSpecies(species, year).then(response => {
+        return api.getYearRequestForSpecies(value, year).then(response => {
           if ("body" in response && response.statusCode === 200) {
             return JSON.stringify(response["body"]);
           } else {
-            return null; // or some default value if the request fails
+            return null;
           }
         });
       });
@@ -130,8 +138,8 @@ class NationPage extends Component {
   }
 
   setNation = (e) => {
-    console.log(this.state.requests)
     const nation = e.target.value
+    this.getRequests(this.state.year, this.state.species, this.state.requests)
     this.setState({nationName: nation})
     this.getNationVariables(nation, {})
   }
@@ -139,12 +147,11 @@ class NationPage extends Component {
   setYear = (e) => {
     const year = e.target.value
     this.setState({year: year})
-    this.getRequests(year, {})
+    this.getRequests(year, this.state.species, {})
     this.getGrants(year, this.state.nationName, {})
   }
 
   isNationInRequests = () => {
-    console.log(this.state.requests)
     for (const species in this.state.requests) {
       if (this.state.requests[species] !== null && this.state.nationName in this.state.requests[species]) {
         return true
@@ -172,6 +179,21 @@ class NationPage extends Component {
         this.setState({grantsLoading: false})
       })
     } 
+  }
+
+  formatNumber = (val) => {
+    if (val) {
+      var formattedNumber = val.toLocaleString()
+      return formattedNumber
+    }
+    return val
+  }
+
+  formatStat = (val) => {
+    if (val) {
+      return val.substring(0, val.length - 1)
+    }
+    return val
   }
 
   render() {
@@ -209,15 +231,22 @@ class NationPage extends Component {
                 <Thead>
                 <Tr>
                   {
-                    this.state.headers.map(function(header, index) {
-                      return <Th isNumeric={!(index === 0)}>{header}</Th>
+                    this.state.headers.map((header, index)  => {
+                      return (<Tooltip 
+                        placement="top"
+                        label={
+                        !header.includes("allocated") ? "" : "Total allocated amount for year, see Grants section for more details"
+                        }>
+                        <Th isNumeric={index !== 0}>{header}</Th>
+                      </Tooltip>)
+                                              
                     })
                   }
                 </Tr>
                 </Thead>
                 <Tbody>
                   {
-                    Object.keys(this.state.requests).length > 0 ?
+                    this.state.requests && Object.keys(this.state.requests).length > 0 ?
                     Object.entries(this.state.requests).map(([species, requests]) => (
                       requests && Object.keys(requests).length > 0 ?
                         Object.entries(requests).filter(([k, v]) => k === this.state.nationName).map(([key, value], index) => (
@@ -248,23 +277,36 @@ class NationPage extends Component {
             </Box>
             <Divider/>
               {
-                this.state.grantsLoading ? <Progress isIndeterminate size="xs" variant="basic"></Progress> :
-                this.isNationInGrants() ? 
+                this.state.grantsLoading ? <Progress isIndeterminate size="xs" variant="basic"></Progress> : <></>
+              }
+              {
+                !this.isNationInGrants() && !this.state.grantsLoading ? <Alert status="warning"><AlertIcon/>{"No Grants"}</Alert> : <></>
+              }
+              <SimpleGrid columns={3}>
+              { 
+                !this.state.grantsLoading && this.isNationInGrants() ? 
                   Object.entries(this.state.grants).map(([species, value]) => (
                     this.state.nationName in value ? 
-                    <Box maxW="sm" align="center" p={4}>
-                    <Card maxW="xs">
-                      <Stat>
-                        <StatLabel>{species}</StatLabel>
-                        <StatNumber>{`$${value[this.state.nationName]["cost"]}`}</StatNumber>
-                        <StatHelpText>{
-                          "granted_quota" in value[this.state.nationName] ? "quota: " + value[this.state.nationName]["granted_quota"] : ""}
-                          { "granted_license" in value[this.state.nationName] ? value[this.state.nationName]["granted_license"] : ""}
-                          </StatHelpText>
-                      </Stat>
-                      </Card></Box> : <></>
-                  )) : <Alert status="warning"><AlertIcon/>{"No Grants"}</Alert>
+                      value[this.state.nationName].map((grant, index) => 
+                      <Box maxW="sm" align="center" p={4}>
+                      <Tooltip label={grant["timestamp"]}>
+                      <Card maxW="xs">
+                        <Stat>
+                          <StatLabel>{species}</StatLabel>
+                          <StatNumber>{`$${this.formatNumber(grant["cost"])}`}</StatNumber>
+                          <StatHelpText>{
+                            "granted_quota" in grant ? "quota: " + this.formatStat(this.formatNumber(grant["granted_quota"])) : ""}
+                            { "granted_license" in grant ? this.formatNumber(grant["granted_license"]) : ""}
+                            </StatHelpText>
+                        </Stat>
+                        </Card>
+                        </Tooltip>
+                      </Box>
+                    )
+                     : <></>
+                  )) : <></>
               }
+              </SimpleGrid>
           </Box>
   
           <Box p={6} boxShadow="xl" borderRadius="md" bg="white">
@@ -279,7 +321,15 @@ class NationPage extends Component {
                 <Tr>
                   {
                     Object.keys(this.state.nationVariables).map(key => {
-                      return <Th>{key}</Th>
+                      return( 
+                      <Tooltip placement="top"
+                      label={
+                        key === "funds" ? "Original percentage of total funds" : 
+                        key === "availability" ? "List of species nation has availibilty to" 
+                      : key === "updated_funds" ? "Nations unused funds, as percentage of total funds" 
+                      : key === "allocation_fufillment_ratio" ? "Rolling ratio of requested amount / granted amount, recalculated after each recommendation is run" : ""}>
+                        <Th isNumeric={key !== "availability"}>{key}</Th>
+                      </Tooltip>)
                     })
                   }
                 </Tr>
@@ -288,7 +338,11 @@ class NationPage extends Component {
                   {
                     Object.keys(this.state.nationVariables).length > 0 ?
                     Object.entries(this.state.nationVariables).map(([key, val]) => (
-                      <Td>{key === "availability" ? val.join(", ") : val}</Td>
+                      <Td isNumeric={key !== "availability"}>{
+                        key === "availability" ? val.join(", ") :
+                        key.includes("funds") ? Math.round(val * 100000) / 100000 + "%" :
+                        val
+                      }</Td>
                     ))                 
                     : <></>
                   }
