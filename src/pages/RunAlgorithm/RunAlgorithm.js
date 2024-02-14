@@ -342,7 +342,8 @@ function RunAlgorithm() {
             </Box> : <></>
           }
         </Box> :
-        checkingFunds ? <Progress isIndeterminate size="xs" variant="basic"></Progress> :
+        checkingFunds ? 
+        <Progress isIndeterminate size="xs" variant="basic"></Progress> :
         <Alert status="error"><AlertIcon/>Insufficient Funds!</Alert>
       )
   }
@@ -490,7 +491,7 @@ function RunAlgorithm() {
       onCancel={(e) => {setSubmit(false);}} 
       onConfirm={submitGrant}
       confirmedButtonDisabled={checkingFunds || insufficientFunds}
-      header="Confirm Grant Approval"
+      header={!checkingFunds ? "Confirm Grant Approval" : "Confirming sufficient funds..."}
       dialog={<Confirm/>}
       loading={loadingGrant}
     />
