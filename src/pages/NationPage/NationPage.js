@@ -77,8 +77,6 @@ class NationPage extends Component {
         window.location.href = "/404"
       }
       this.getGrants(this.state.year, this.state.nationName, this.state.grants)
-      // var requests = JSON.parse(localStorage.getItem("requests")) 
-      // this.setState({"requests": requests})
       this.getRequests(this.state.year, speciesList, {});
       this.getNationVariables(this.state.nationName, this.state.nationVariables)
 
@@ -139,7 +137,7 @@ class NationPage extends Component {
 
   setNation = (e) => {
     const nation = e.target.value
-    this.getRequests(this.state.year, this.state.species, this.state.requests)
+    this.getRequests(this.state.year, this.state.speciesList, this.state.requests)
     this.setState({nationName: nation})
     this.getNationVariables(nation, {})
   }
@@ -147,7 +145,7 @@ class NationPage extends Component {
   setYear = (e) => {
     const year = e.target.value
     this.setState({year: year})
-    this.getRequests(year, this.state.species, {})
+    this.getRequests(year, this.state.speciesList, {})
     this.getGrants(year, this.state.nationName, {})
   }
 
