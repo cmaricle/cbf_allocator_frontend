@@ -273,7 +273,7 @@ class NationPage extends Component {
   
           <Box p={6} boxShadow="xl" borderRadius="md" bg="white">
             <Box p={2}>
-              <Center><Heading variant="solid">Grants</Heading></Center>
+              <Center><Heading variant="solid">Allocations</Heading></Center>
             </Box>
             <Divider/>
               {
@@ -293,11 +293,11 @@ class NationPage extends Component {
                       <Card maxW="xs">
                         <Stat>
                           <StatLabel>{species}</StatLabel>
-                          <StatNumber>{`$${this.formatNumber(grant["cost"])}`}</StatNumber>
-                          <StatHelpText>{
+                          <StatNumber>{
                             "granted_quota" in grant ? "quota: " + this.formatStat(this.formatNumber(grant["granted_quota"])) : ""}
                             { "granted_license" in grant ? this.formatNumber(grant["granted_license"]) : ""}
-                            </StatHelpText>
+                            </StatNumber>
+                          <StatHelpText>{`$${this.formatNumber(grant["cost"])}`}</StatHelpText>
                         </Stat>
                         </Card>
                         </Tooltip>
