@@ -164,7 +164,7 @@ function RunAlgorithm() {
   }, []);
   
   const alertUser = (e) => {
-    if (Object.keys(updatedValues).length !== 0) {
+    if (Object.keys(updatedValues).length !== 0 || Object.keys(nationsSubmitted).length !== 0) {
       e.preventDefault();
     }
   }
@@ -383,6 +383,7 @@ function RunAlgorithm() {
     row.forEach(function(item, index) {
       if (index % 2 !== 0) {
         const value = getValue(key, item, index)
+        console.log(value)
         if (value > row[index - 1]) {
           result.push(true)
         } else if (value === 0) {
@@ -393,7 +394,8 @@ function RunAlgorithm() {
         }
       } 
     })
-    return result.includes(true) || result.length === 2 ? (result[0] === 0 && result[1] === 0) : result[0] === 0
+    console.log(result.includes(true))
+    return result.includes(true) || (result.length === 2 ? (result[0] === 0 && result[1] === 0) : result[0] === 0)
   }
 
   return (
