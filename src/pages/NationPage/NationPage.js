@@ -325,7 +325,7 @@ class NationPage extends Component {
                         key === "funds" ? "Original percentage of total funds" : 
                         key === "availability" ? "List of species nation has availibilty to" 
                       : key === "updated_funds" ? "Nations unused funds, as percentage of total funds" 
-                      : key === "allocation_fufillment_ratio" ? "Rolling ratio of granted amount / requested amount, recalculated after each recommendation is run" : ""}>
+                      : key === "allocation_fulfillment_ratio" ? "Rolling ratio of granted amount / requested amount, recalculated after each recommendation is run" : ""}>
                         <Th isNumeric={key !== "availability"}>{key}</Th>
                       </Tooltip>)
                     })
@@ -339,7 +339,7 @@ class NationPage extends Component {
                       <Td isNumeric={key !== "availability"}>{
                         key === "availability" ? val.join(", ") :
                         key.includes("funds") ?  Math.round(val * 100000) / 100000 + "%" :
-                        key.includes("allocation") ? (val * 100) + "%" :
+                        key.includes("allocation") ? Math.round((val * 100) * 100000) / 100000  + "%" :
                         val
                       }</Td>
                     ))                 
