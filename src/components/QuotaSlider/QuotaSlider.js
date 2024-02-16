@@ -27,7 +27,14 @@ function QuotaSlider({ onSelect, maxValue, step }) {
   return (
     <ChakraProvider theme={theme}>
     <Flex>
-      <NumberInput maxW='100px' mr='2rem' value={value} onChange={handleChange}>
+      <NumberInput 
+        maxW='100px' 
+        mr='2rem' 
+        value={value} 
+        onChange={handleChange}
+        step={step}
+        min={0}
+        >
         <NumberInputField />
         <NumberInputStepper>
           <NumberIncrementStepper />
@@ -56,7 +63,8 @@ function QuotaSlider({ onSelect, maxValue, step }) {
 }
 
 QuotaSlider.propTypes = {
-  value: PropTypes.number
+  value: PropTypes.number,
+  step: PropTypes.number
 }
 
 export default QuotaSlider;
