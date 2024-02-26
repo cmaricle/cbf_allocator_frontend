@@ -93,7 +93,7 @@ function Form({buttonName, speciesList}) {
                 <Box>
                 <ApiSelect listType="species" list={speciesList} onSelect={handleSpeciesChange}/>
                 </Box>
-                <Divider/>
+                <Divider hidden={quotaEntryHidden}/>
                 <Box p={2} hidden={selectedSpecies === ""} >
                 <RadioGroup onChange={e => setYear(e)} value={year}>
                   <Center>

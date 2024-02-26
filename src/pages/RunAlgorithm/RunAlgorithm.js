@@ -383,7 +383,6 @@ function RunAlgorithm() {
     row.forEach(function(item, index) {
       if (index % 2 !== 0) {
         const value = getValue(key, item, index)
-        console.log(value)
         if (value > row[index - 1]) {
           result.push(true)
         } else if (value === 0) {
@@ -394,7 +393,6 @@ function RunAlgorithm() {
         }
       } 
     })
-    console.log(result.includes(true))
     return result.includes(true) || (result.length === 2 ? (result[0] === 0 && result[1] === 0) : result[0] === 0)
   }
 
@@ -404,7 +402,7 @@ function RunAlgorithm() {
       templateAreas={`"header"
                       "main"
                       "footer"`}
-      gap='10'
+      gap='20'
     >
       <GridItem area={"header"}>
         <WebsiteHeader/>
@@ -488,7 +486,7 @@ function RunAlgorithm() {
       : <></>
     }
     </GridItem>
-    <GridItem area={"footer"}>
+    <GridItem p={2} area={"footer"}>
       <Form 
         buttonName="Rerun Algorithm" 
         speciesList={speciesList}
