@@ -88,24 +88,19 @@ const Ellipsis = ({ totalSlides, activeSlide, setActiveSlide }) => {
 const ParallaxHeroSection = ({speciesList, nationList, image, description, heading}) => {
   const [scrollY, setScrollY] = useState(0);
   const [position, setPosition] = useState(0);
+  const [percent, setPercent] = useState(0)
   const [hidden, setHidden] = useState(true);
-  const { isOpen, onToggle } = useDisclosure()
-
-  function getScrollPercent() {
-    var h = document.documentElement, 
-        b = document.body,
-        st = 'scrollTop',
-        sh = 'scrollHeight';
-    return (h[st]||b[st]) / ((h[sh]||b[sh]) - h.clientHeight) * 100;
-  }
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrollY(scrollY - window.scrollY);
+      const scrollY = window.scrollY || window.pageYOffset;
+      const windowHeight = window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
+      const scrollPercentage = (scrollY / (documentHeight - windowHeight)) * 100;
+      setPercent(scrollPercentage);
     };
-    window.addEventListener('scroll', handleScroll);
-    setHidden(false);
 
+    window.addEventListener('scroll', handleScroll);
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
@@ -123,7 +118,7 @@ const ParallaxHeroSection = ({speciesList, nationList, image, description, headi
       flexDirection="column"
       // justifyContent="center"
     >
-      <WebsiteHeader hidden={getScrollPercent() > 80}></WebsiteHeader>
+      <WebsiteHeader hidden={percent > 80}></WebsiteHeader>
       <Box flex="1"></Box> {/* This will create space for the header */}
       <Grid templateColumns='repeat(5, 1fr)'>
         <GridItem colSpan={1}>
@@ -172,8 +167,10 @@ const ParallaxHeroSection = ({speciesList, nationList, image, description, headi
             />
       </Box>
     </Box>
-    <Box hidden={hidden} height={"100vh"} >
-        <Slide direction='left' in={getScrollPercent() > 80} style={{ zIndex: 10 }}>
+    ({
+      percent > 0 ?
+      (<Box height={"100vh"} >
+        <Slide direction='left' in={percent> 80} style={{ zIndex: 10 }}>
         <Grid templateColumns='repeat(6, 1fr)' templateRows="repeat(16, 1fr)">
         <GridItem colSpan={6} rowSpan={4}><Box flex="1"></Box></GridItem>
         <GridItem colSpan={1}><Box flex="1"></Box></GridItem>
@@ -184,36 +181,37 @@ const ParallaxHeroSection = ({speciesList, nationList, image, description, headi
           >
           </Image>
           </GridItem>
-          <GridItem hidden={hidden || getScrollPercent() < 95} colSpan={2} rowSpan={2}>
-            <ScaleFade in={getScrollPercent() > 95}>
+          <GridItem hidden={percent < 95} colSpan={2} rowSpan={2}>
+            <ScaleFade in={percent > 95}>
               <Center>
                 <Heading color="green.800">How It Works</Heading>
               </Center>
             </ScaleFade>
           </GridItem>
-          <GridItem hidden={hidden || getScrollPercent() < 98} colSpan={2} rowSpan={3}>
+          <GridItem hidden={percent < 98} colSpan={2} rowSpan={3}>
             <Slide 
               direction='right' 
-              in={getScrollPercent() > 98} 
+              in={percent > 98} 
               style={{position: "relative"}}
+              hidden={percent < 98}
               >
-                <Text textAlign={"center"}>
+                <Text textAlign={"center"} hidden={percent < 98}>
                   Using a combination of fixed and calculated variables, our goal is to distribute the available assets in the fairest manner possible between the requesting nations.
                 </Text>
             </Slide>
           </GridItem>
-          <GridItem hidden={hidden || getScrollPercent() < 99} colSpan={2} rowSpan={2}>
-            <ScaleFade in={getScrollPercent() > 99}>
+          <GridItem hidden={percent < 99} colSpan={2} rowSpan={2}>
+            <ScaleFade in={percent > 99}>
               <Center>
-                <Button>Learn More</Button>
+                <Button hidden={percent < 99}>Learn More</Button>
               </Center>
             </ScaleFade>
           </GridItem>
           <GridItem colSpan={5}></GridItem>
         </Grid>
         </Slide>
-        <Footer hidden={hidden || getScrollPercent() < 99}/>
-    </Box>
+        <Footer hidden={percent < 99}/>
+    </Box>) : <></>}) 
 </>
   );
 };
