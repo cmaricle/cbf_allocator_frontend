@@ -13,7 +13,7 @@ class RunAlgorithmChart extends PureComponent {
 
   render() {
     return (
-      <ResponsiveContainer width="100%" height="100%">
+      // <ResponsiveContainer width="100%" height="100%">
         <BarChart
           height={500}
           width={300}
@@ -30,16 +30,17 @@ class RunAlgorithmChart extends PureComponent {
           <YAxis />
           <Tooltip />
           <Legend />
-          <Bar dataKey="requested_quota" stackId="a" fill="#31473A" />
-          <Bar dataKey="granted_quota" stackId="a" fill="#EDF4F2" />
+          <Bar dataKey={`requested_${this.props.type}`} stackId="a" fill="#31473A" />
+          <Bar dataKey={`granted_${this.props.type}`} stackId="a" fill="#EDF4F2" />
         </BarChart>
-        </ResponsiveContainer>
+        // </ResponsiveContainer>
     );
   }
 }
 
 RunAlgorithmChart.propTypes = {
-  data: PropTypes.object.isRequired
+  data: PropTypes.object.isRequired,
+  type: PropTypes.string.isRequired,
 }
 
 export default RunAlgorithmChart

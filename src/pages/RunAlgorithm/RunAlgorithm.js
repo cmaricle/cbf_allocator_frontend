@@ -73,6 +73,7 @@ function RunAlgorithm() {
   const runAlgorithm = async (species, quota) => {
     setIsLoading(true);
     setUpdatedValues({})
+    localStorage.removeItem("results")
     api.runAlgorithm(
         {
           "species": species, 
@@ -93,7 +94,7 @@ function RunAlgorithm() {
             setAlgorithmResults(results)
           } else {
             setNoResults(false);
-            setResponse(JSON.stringify(results));
+            setResponse(results);
             localStorage.setItem("results", JSON.stringify(results))
             const quotaDict = createRows(results)
             const licenseDict = createRows(results, "license")
@@ -187,26 +188,37 @@ function RunAlgorithm() {
     }
   }, [quota, species])
 
-  const getTotalGrantColumn = (nation, updatedValues, requestedAmount) => {
-    let originalGrants = JSON.parse(localStorage.getItem("results"))["quota_response"]["granted_quota"]
-    console.log(originalGrants)
-    let grantTotal = 0
-    for (const key in originalGrants) {
-      if (key !== nation) {
-        if (key in updatedValues) {
-          grantTotal = grantTotal + updatedValues[key]["quota"]
-        } else {
-          grantTotal = grantTotal + originalGrants[key]
+  const getTotalGrantColumn = (nation, updatedValues, requestedAmount, index) => {
+    if (Object.keys(JSON.parse(localStorage.getItem("results"))).length > 0) {
+      let type = "quota"
+      if (license > 0 && quota === 0 || index === 3) {
+        type = "license"
+      }
+      console.log(JSON.parse(localStorage.getItem("results")))
+      if (localStorage.getItem("results").includes(type)) {
+        let originalGrants = JSON.parse(localStorage.getItem("results"))[`${type}_response`][`granted_${type}`]
+        console.log(originalGrants)
+        console.log(updatedValues)
+        let grantTotal = 0
+        for (const key in originalGrants) {
+          if (key !== nation) {
+            if (key in updatedValues) {
+              grantTotal = grantTotal + updatedValues[key][`${type}`]
+            } else {
+              grantTotal = grantTotal + originalGrants[key]
+            }
+          }
         }
+        console.log(nation)
+        console.log(Math.min(algorithmResults[`${type}`] - grantTotal, requestedAmount))
+        return Math.min(algorithmResults[`${type}`] - grantTotal, requestedAmount)
       }
     }
-    console.log(nation)
-    console.log(Math.min(algorithmResults["quota"] - grantTotal, requestedAmount))
-    return Math.min(algorithmResults["quota"] - grantTotal, requestedAmount)
+    return requestedAmount
   }
 
   const onInputChange = (e, name=null) => {
-    console.log(e)
+    console.log(name)
     const changedRow = !name ? e.target.name : name;
     const nationName = changedRow.split("-")[0]
     var updatedNationValues = updatedValues
@@ -428,16 +440,32 @@ function RunAlgorithm() {
     const transformedObject = [];
     let granted_key = `granted_${type}`
     let requested_key = `requested_${type}`
+    console.log(inputObject)
     Object.keys(inputObject[`${type}_response`][granted_key]).forEach(key => {
-        transformedObject.push({
-            name: key,
-            granted_quota: inputObject[`${type}_response`][granted_key][key],
-            requested_quota: inputObject[`${type}_response`][requested_key][key]
-        });
+        let data = {
+          name: key,
+        }
+        if (!(key in updatedValues)) {
+          data[granted_key] = inputObject[`${type}_response`][granted_key][key]
+          data[requested_key] = inputObject[`${type}_response`][requested_key][key]
+        } else {
+          data[granted_key] = updatedValues[key][type]
+          data[requested_key] = inputObject[`${type}_response`][requested_key][key]
+        }
+
+        transformedObject.push(data)
     });
+    console.log(transformedObject)
     return transformedObject;
   }
 
+  const getType = (index) => {
+    if (quota > 0 && index === 1) {
+      return "quota"
+    } else {
+      return "license"
+    }
+  }
 
   return (
   <ChakraProvider theme={theme}>
@@ -458,7 +486,16 @@ function RunAlgorithm() {
           <GridItem>
           {
             Object.keys(response).length > 0 || Object.keys(JSON.parse(localStorage.getItem("results")).length > 0) ? 
-              <RunAlgorithmChart data={transformObject(response, "quota")}/>
+              <>
+              {
+                quota > 0 && algorithmResults["quota"] === quota && algorithmResults["species"] === species ?
+                <RunAlgorithmChart type="quota" data={transformObject(response, "quota")}/> : <></> 
+              }
+              {/* {
+                license > 0 && localStorage.getItem("results").includes("license")?
+                <RunAlgorithmChart type="license" data={transformObject(response, "license")}></RunAlgorithmChart> : <></>
+              } */}
+              </>
             : <></>
           }
         </GridItem>
@@ -495,13 +532,13 @@ function RunAlgorithm() {
                         <NumberInput
                           name={`${key}-${index}`}
                           min={0}
-                          step={500}
-                          max={getTotalGrantColumn(key, updatedValues, Number(rows[key][index - 1]))}
+                          step={getType(index) === "quota" ? 500 : 1}
+                          max={getTotalGrantColumn(key, updatedValues, Number(rows[key][index - 1], index))}
                           keepWithinRange={true}
                           clampValueOnBlur={true}
                           value={Number(format(getValue(key, item, index)))}
                           onInput={onInputChange}
-                          onChange={(e) => onInputChange(e, key)}
+                          onChange={(e) => onInputChange(e, `${key}-${index}`)}
                         ><NumberInputField/>
                             <NumberInputStepper>
                             <NumberIncrementStepper />
@@ -548,7 +585,7 @@ function RunAlgorithm() {
       : <></>
     }
     </GridItem>
-    <GridItem area={"footer"}>
+    <GridItem area={"footer"} p={2}>
       <Form 
         buttonName="Rerun Algorithm" 
         speciesList={speciesList}
