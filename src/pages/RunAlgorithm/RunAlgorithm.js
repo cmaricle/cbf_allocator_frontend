@@ -46,12 +46,14 @@ import * as api from '../../modules/api'
 import Form from "../../components/Form";
 import WebsiteHeader from "../../components/WebsiteHeader/WebsiteHeader";
 import AlertPopUp from "../../components/AlertPopUp/AlertPopUp";
+import  RunAlgorithmChart  from "../../components/BarChart/BarChart";
 import theme from "../../theme";
 
 function RunAlgorithm() {
   const location = useLocation();
   const {species, quota, license, quotaCost, licenseCost, year, speciesList, loading} = location.state;
   const [algorithmResults, setAlgorithmResults] = useState({});
+  const [response, setResponse] = useState({});
   const [noResults, setNoResults] = useState(false);
   const [error, setError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -91,6 +93,8 @@ function RunAlgorithm() {
             setAlgorithmResults(results)
           } else {
             setNoResults(false);
+            setResponse(JSON.stringify(results));
+            localStorage.setItem("results", JSON.stringify(results))
             const quotaDict = createRows(results)
             const licenseDict = createRows(results, "license")
             const quotaDictEmpty = Object.values(quotaDict).length === 0
@@ -183,11 +187,30 @@ function RunAlgorithm() {
     }
   }, [quota, species])
 
-  const onInputChange = (e) => {
-    const changedRow = e.target.name;
+  const getTotalGrantColumn = (nation, updatedValues, requestedAmount) => {
+    let originalGrants = JSON.parse(localStorage.getItem("results"))["quota_response"]["granted_quota"]
+    console.log(originalGrants)
+    let grantTotal = 0
+    for (const key in originalGrants) {
+      if (key !== nation) {
+        if (key in updatedValues) {
+          grantTotal = grantTotal + updatedValues[key]["quota"]
+        } else {
+          grantTotal = grantTotal + originalGrants[key]
+        }
+      }
+    }
+    console.log(nation)
+    console.log(Math.min(algorithmResults["quota"] - grantTotal, requestedAmount))
+    return Math.min(algorithmResults["quota"] - grantTotal, requestedAmount)
+  }
+
+  const onInputChange = (e, name=null) => {
+    console.log(e)
+    const changedRow = !name ? e.target.name : name;
     const nationName = changedRow.split("-")[0]
     var updatedNationValues = updatedValues
-    var val = e.target.value;
+    var val = !name ? e.target.value : e;
     if (!(nationName in updatedNationValues)) {
       updatedNationValues[nationName] = {}
     }
@@ -203,7 +226,7 @@ function RunAlgorithm() {
     } else {
       updatedNationValues[nationName]["quota"] = Number(val)
     }
-    setUpdatedValues(updatedNationValues)
+   
     forceUpdate()
   }
 
@@ -398,6 +421,24 @@ function RunAlgorithm() {
     return result.includes(true) || (result.length === 2 ? (result[0] === 0 && result[1] === 0) : result[0] === 0)
   }
 
+  const transformObject = (inputObject, type) => {
+    if (Object.keys(inputObject).length === 0) {
+      inputObject = JSON.parse(localStorage.getItem("results"))
+    }
+    const transformedObject = [];
+    let granted_key = `granted_${type}`
+    let requested_key = `requested_${type}`
+    Object.keys(inputObject[`${type}_response`][granted_key]).forEach(key => {
+        transformedObject.push({
+            name: key,
+            granted_quota: inputObject[`${type}_response`][granted_key][key],
+            requested_quota: inputObject[`${type}_response`][requested_key][key]
+        });
+    });
+    return transformedObject;
+  }
+
+
   return (
   <ChakraProvider theme={theme}>
     <Grid
@@ -408,12 +449,21 @@ function RunAlgorithm() {
     >
       <GridItem area={"header"}>
         <WebsiteHeader/>
-    </GridItem>
+      </GridItem>
     <GridItem area={"main"}>
       {
       isLoading ? ((<Progress size="xs" isIndeterminate variant="basic"></Progress>)) :
         Object.keys(algorithmResults).length > 0  && !noResults ? 
-      (<TableContainer>
+      (<Grid templateRows={"repeat(2, 1fr)"} gap={5}>
+          <GridItem>
+          {
+            Object.keys(response).length > 0 || Object.keys(JSON.parse(localStorage.getItem("results")).length > 0) ? 
+              <RunAlgorithmChart data={transformObject(response, "quota")}/>
+            : <></>
+          }
+        </GridItem>
+        <GridItem>
+      <TableContainer>
           <Table>
             <TableCaption>{`Total available ${species} quota: ${quota} license: ${license}`}</TableCaption>
             <Thead>
@@ -439,19 +489,26 @@ function RunAlgorithm() {
                       ) : (nationStatus(key)) ? 
                       (<Text>{getValue(key, item, index)}</Text>) :
                        (
-                        <FormControl 
-                          isInvalid={isInvalidValue(key, item, index)}
-                        >
+                        // <FormControl 
+                        //   isInvalid={isInvalidValue(key, item, index)}
+                        // >
                         <NumberInput
                           name={`${key}-${index}`}
                           min={0}
-                          max={Number(rows[key][index - 1])}
+                          step={500}
+                          max={getTotalGrantColumn(key, updatedValues, Number(rows[key][index - 1]))}
                           keepWithinRange={true}
+                          clampValueOnBlur={true}
                           value={Number(format(getValue(key, item, index)))}
                           onInput={onInputChange}
-                        ><NumberInputField/>  
-                    </NumberInput>
-                    </FormControl>
+                          onChange={(e) => onInputChange(e, key)}
+                        ><NumberInputField/>
+                            <NumberInputStepper>
+                            <NumberIncrementStepper />
+                            <NumberDecrementStepper />
+                          </NumberInputStepper>
+                      </NumberInput>
+                    // </FormControl>
                       )
                       }
                       
@@ -481,7 +538,10 @@ function RunAlgorithm() {
             }
             </Tbody>
           </Table>
-        </TableContainer>)
+        </TableContainer>
+        </GridItem>
+        </Grid>
+      )
          : noResults ? 
       (<Alert status="warning"><AlertIcon/>{algorithmResults["response"]}</Alert>) 
       : error ? (<Alert status="error"><AlertIcon/>Error processing request - please try again!</Alert>) 
