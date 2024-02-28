@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useReducer } from "react";
+import React, { useRef, useState, useEffect, useReducer } from "react";
 import { Link as ReactRouterLink, useLocation, useHistory } from 'react-router-dom';
 
 
@@ -28,14 +28,14 @@ import {
   SimpleGrid,
   NumberInput,
   NumberInputField,
-  FormErrorMessage,
+  Flex,
   FormHelperText,
   FormControl,
   NumberIncrementStepper,
   NumberInputStepper,
   NumberDecrementStepper,
   Tooltip,
-  Spacer,
+  Center,
 } 
 from '@chakra-ui/react'
 import { IoIosSend } from "react-icons/io";
@@ -194,11 +194,8 @@ function RunAlgorithm() {
       if (license > 0 && quota === 0 || index === 3) {
         type = "license"
       }
-      console.log(JSON.parse(localStorage.getItem("results")))
       if (localStorage.getItem("results").includes(type)) {
         let originalGrants = JSON.parse(localStorage.getItem("results"))[`${type}_response`][`granted_${type}`]
-        console.log(originalGrants)
-        console.log(updatedValues)
         let grantTotal = 0
         for (const key in originalGrants) {
           if (key !== nation) {
@@ -209,8 +206,6 @@ function RunAlgorithm() {
             }
           }
         }
-        console.log(nation)
-        console.log(Math.min(algorithmResults[`${type}`] - grantTotal, requestedAmount))
         return Math.min(algorithmResults[`${type}`] - grantTotal, requestedAmount)
       }
     }
@@ -218,6 +213,7 @@ function RunAlgorithm() {
   }
 
   const onInputChange = (e, name=null) => {
+    console.log(e)
     console.log(name)
     const changedRow = !name ? e.target.name : name;
     const nationName = changedRow.split("-")[0]
@@ -228,6 +224,7 @@ function RunAlgorithm() {
     }
     if (quota > 0 && license > 0) {
         const changeType = changedRow.split("-")[1]
+        console.log(changeType)
         if (changeType == 1) {
           updatedNationValues[nationName]["quota"] = Number(val)
         } else {
@@ -409,16 +406,11 @@ function RunAlgorithm() {
     } 
   }
 
-  const isInvalidValue = (key, item, index) => {
-    return Number(format(getValue(key, item, index))) > Number(rows[key][index - 1])
-  }
-
   const submitButtonDisabled = (key, row) => {
     var result = []
     row.forEach(function(item, index) {
       if (index % 2 !== 0) {
         const value = getValue(key, item, index)
-        console.log(value)
         if (value > row[index - 1]) {
           result.push(true)
         } else if (value === 0) {
@@ -429,7 +421,6 @@ function RunAlgorithm() {
         }
       } 
     })
-    console.log(result.includes(true))
     return result.includes(true) || (result.length === 2 ? (result[0] === 0 && result[1] === 0) : result[0] === 0)
   }
 
@@ -441,11 +432,13 @@ function RunAlgorithm() {
     let granted_key = `granted_${type}`
     let requested_key = `requested_${type}`
     console.log(inputObject)
+    console.log(updatedValues)
+    console.log(type)
     Object.keys(inputObject[`${type}_response`][granted_key]).forEach(key => {
         let data = {
           name: key,
         }
-        if (!(key in updatedValues)) {
+        if (!(key in updatedValues) || !JSON.stringify(updatedValues).includes(type)) {
           data[granted_key] = inputObject[`${type}_response`][granted_key][key]
           data[requested_key] = inputObject[`${type}_response`][requested_key][key]
         } else {
@@ -473,33 +466,45 @@ function RunAlgorithm() {
       templateAreas={`"header"
                       "main"
                       "footer"`}
-      gap='10'
+      gap='6'
+      maxHeight="100vh"
     >
       <GridItem area={"header"}>
         <WebsiteHeader/>
+        <Divider/>
       </GridItem>
     <GridItem area={"main"}>
       {
       isLoading ? ((<Progress size="xs" isIndeterminate variant="basic"></Progress>)) :
         Object.keys(algorithmResults).length > 0  && !noResults ? 
-      (<Grid templateRows={"repeat(2, 1fr)"} gap={5}>
-          <GridItem>
+      (
+        <Flex justify={"center"}>
+      <Grid templateRows={"repeat(2, 1fr)"} gap={5}>
+          <GridItem rowSpan={1}>
+          <Grid templateColumns={license > 0 && quota > 0 ? "repeat(2, 1fr)" : "repeat(1, 1fr)"} gap={5}>
           {
             Object.keys(response).length > 0 || Object.keys(JSON.parse(localStorage.getItem("results")).length > 0) ? 
               <>
               {
                 quota > 0 && algorithmResults["quota"] === quota && algorithmResults["species"] === species ?
-                <RunAlgorithmChart type="quota" data={transformObject(response, "quota")}/> : <></> 
+                <GridItem>
+                  <Center><Heading as="i" size="md">Quota Distribution</Heading></Center>
+                  <RunAlgorithmChart type="quota" data={transformObject(response, "quota")}/>
+                </GridItem> : <></> 
               }
-              {/* {
-                license > 0 && localStorage.getItem("results").includes("license")?
-                <RunAlgorithmChart type="license" data={transformObject(response, "license")}></RunAlgorithmChart> : <></>
-              } */}
+              {
+                license > 0 && localStorage.getItem("results").includes("license") ?
+                <GridItem>
+                <Center><Heading as="i" size="md">License Distribution</Heading></Center>
+                <RunAlgorithmChart type="license" data={transformObject(response, "license")}></RunAlgorithmChart>
+                </GridItem> : <></>
+              }
               </>
             : <></>
           }
+        </Grid>
         </GridItem>
-        <GridItem>
+        <GridItem rowSpan={1}>
       <TableContainer>
           <Table>
             <TableCaption>{`Total available ${species} quota: ${quota} license: ${license}`}</TableCaption>
@@ -578,6 +583,7 @@ function RunAlgorithm() {
         </TableContainer>
         </GridItem>
         </Grid>
+        </Flex>
       )
          : noResults ? 
       (<Alert status="warning"><AlertIcon/>{algorithmResults["response"]}</Alert>) 
@@ -586,10 +592,12 @@ function RunAlgorithm() {
     }
     </GridItem>
     <GridItem area={"footer"} p={2}>
+      <Center>
       <Form 
         buttonName="Rerun Algorithm" 
         speciesList={speciesList}
       ></Form>
+      </Center>
     </GridItem>
     </Grid>
     <AlertPopUp 

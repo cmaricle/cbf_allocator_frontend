@@ -13,10 +13,8 @@ class RunAlgorithmChart extends PureComponent {
 
   render() {
     return (
-      // <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer aspect={2.6}>
         <BarChart
-          height={500}
-          width={300}
           data={this.props.data}
           margin={{
             top: 20,
@@ -33,7 +31,7 @@ class RunAlgorithmChart extends PureComponent {
           <Bar dataKey={`requested_${this.props.type}`} stackId="a" fill="#31473A" />
           <Bar dataKey={`granted_${this.props.type}`} stackId="a" fill="#EDF4F2" />
         </BarChart>
-        // </ResponsiveContainer>
+        </ResponsiveContainer>
     );
   }
 }
