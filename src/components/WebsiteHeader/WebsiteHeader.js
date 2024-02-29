@@ -1,26 +1,61 @@
-import React, { Component } from "react";
-import { useHistory } from 'react-router-dom';
+import React, { Component, useState, useEffect } from "react";
+import { useHistory, useLocation } from 'react-router-dom';
+import PropTypes from 'prop-types';
 
 import { IoHomeOutline, IoSettingsOutline, IoLogOutOutline } from "react-icons/io5";
 
 import { Link as ReactRouterLink } from 'react-router-dom'
-import { FormLabel, Link as ChakraLink, LinkProps } from '@chakra-ui/react'
+import { FormLabel, Link as ChakraLink, LinkProps, Center } from '@chakra-ui/react'
 
 
 import { 
   Box,
   ButtonGroup,
-  Button,
+  Drawer,
+  DrawerBody,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerOverlay,
+  DrawerContent,
+  DrawerCloseButton,
   Flex, 
   Heading,
   IconButton,
-  Spacer 
+  Spacer,
+  useDisclosure, 
 } from '@chakra-ui/react'
 
 import { useAuth } from "../../AuthContext"
+import { HamburgerIcon } from "@chakra-ui/icons";
 
-const WebsiteHeader  = () => {
+const WebsiteHeader  = ({hidden=false}) => {
+  const location = useLocation();
+
   const { logout, authenticated } = useAuth()
+  const { isOpen, onOpen, onClose } = useDisclosure()
+  const [scrollY, setScrollY] = useState(0);
+  const [backgroundColor, setBackgroundColor] = useState('transparent');
+  const [fontColor, setFontColor] = useState(location.pathname === "/" ? "white" : "green.800")
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrollY(window.scrollY);
+      if (window.scrollY > 15) {
+        setBackgroundColor("white");
+        setFontColor("green.800")
+      } else {
+        setBackgroundColor('transparent');
+        setFontColor("white")
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, []);
+
   const history = useHistory();
 
   const onLogout = (e) => {
@@ -29,29 +64,64 @@ const WebsiteHeader  = () => {
   }
   
   return (
+    <Box
+      position="fixed"
+      top="0"
+      left="0"
+      right="0"
+      zIndex="999"
+      p="4"
+      width="100%"
+      bg={backgroundColor}
+      color={fontColor}
+      hidden={hidden}
+    >
       <Flex minWidth='max-content' alignItems='center' gap='1'>
-      <Box p='3'>
-        <Heading color="green.800" size='lg'>Distribution Management App</Heading>
+        {/* <IconButton 
+          onClick={onOpen} 
+          background="transparent" 
+          color={fontColor}
+          icon={<HamburgerIcon/>}></IconButton>
+        <Drawer 
+          onClose={onClose} 
+          isOpen={isOpen}
+          placement="left"
+        >
+          <DrawerOverlay />
+          <DrawerContent>
+            <DrawerHeader borderBottomWidth='1px'>Basic Drawer</DrawerHeader>
+            <DrawerBody>
+              <p>Some contents...</p>
+              <p>Some contents...</p>
+              <p>Some contents...</p>
+            </DrawerBody>
+          </DrawerContent>
+        </Drawer> */}
+      <Center>
+      <Box>
+        <Heading size='md'>DISTRIBUTION MANAGEMENT</Heading>
       </Box>
+      </Center>
       <Spacer />
       <ButtonGroup gap='0'>
         <ChakraLink as={ReactRouterLink} to={authenticated ? "/" : "/login"}>
           <IconButton 
-            color="green.800"
-            background="white"
+            background="transparent"
+            color={fontColor}
             icon={<IoHomeOutline/>}>
           </IconButton>
         </ChakraLink>
         <IconButton 
-          color='green.800' 
-          background="white" 
+          background="transparent" 
           icon={<IoLogOutOutline/>}
           onClick={onLogout}
           hidden={!authenticated}
+          color={fontColor}
         >
         </IconButton>
       </ButtonGroup>
     </Flex>
+    </Box>
   );
 }
 

@@ -240,7 +240,7 @@ function Form({ speciesList, nationsList }) {
         <Button 
           onClick={onOpen}
           variant={"solid"}
-        > Enter Nation Variables</Button>
+        > Enter Data</Button>
 
         <Modal isOpen={isOpen} onClose={extendOnClose}>
           <ModalOverlay />

@@ -3,25 +3,21 @@ import sha256 from 'crypto-js/sha256';
 import { jwtDecode } from "jwt-decode";
 import { useHistory, Link as ReactRouterLink } from 'react-router-dom';
 import {
-  AlertDialog,
-  AlertDialogBody,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogContent,
-  AlertDialogOverlay,
-  Box,
+  Grid,
   Button,
   ChakraProvider,
-  Container,
+  Image,
   FormControl,
   FormLabel,
   Input,
   Link as ChakraLink,
   Stack,
   useToast,
-  Flex,
+  Box,
   Card,
   Heading,
+  GridItem,
+  Center,
 } from '@chakra-ui/react';
 import WebsiteHeader from '../../components/WebsiteHeader/WebsiteHeader';
 import AlertPopUp from '../../components/AlertPopUp/AlertPopUp';
@@ -29,6 +25,7 @@ import theme from '../../theme';
 import * as api from '../../modules/api';
 import { useAuth } from '../../AuthContext';
 import ErrorPage from '../Error';
+import Footer from '../../components/Footer/Footer';
 
 
 const LoginPage = () => {
@@ -97,61 +94,72 @@ const LoginPage = () => {
       { backendHealth ? 
       (
         <>
-        <WebsiteHeader/>
-        <Flex
-          direction="column"
-          align="center"
-          justify="center"
-          h="75vh"
-          p={4}
-        >
-          <Card maxW="md" p="10" boxShadow="lg">
-            <Heading mb="4">Login</Heading>
-            <Stack spacing={4}>
-              <FormControl id="username">
-                <FormLabel>Username</FormLabel>
-                <Input
-                  type="text"
-                  placeholder="Enter your username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                />
-              </FormControl>
+          <Grid
+            height="100vh"
+            templateRows='repeat(8, 1fr)'
+            templateColumns='repeat(6, 1fr)'
+          >
+            <GridItem rowSpan={1} colSpan={8}><WebsiteHeader/></GridItem>
+            <GridItem colSpan={8}/>
+            <GridItem colSpan={1}/>
+            <GridItem colSpan={2} rowSpan={4}  display={"grid"}>
+            <Center>
+              <Card maxW="sm" p="10" boxShadow="lg">
+              <Heading mb="4">Login</Heading>
+              <Stack spacing={4}>
+                <FormControl id="username">
+                  <FormLabel>Username</FormLabel>
+                  <Input
+                    type="text"
+                    placeholder="Enter your username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                  />
+                </FormControl>
 
-              <FormControl id="password">
-                <FormLabel>Password</FormLabel>
-                <Input
-                  type="password"
-                  placeholder="Enter your password"
-                  id="passwordInput"
-                />
-              </FormControl>
+                <FormControl id="password">
+                  <FormLabel>Password</FormLabel>
+                  <Input
+                    type="password"
+                    placeholder="Enter your password"
+                    id="passwordInput"
+                  />
+                </FormControl>
 
-              <Button 
-                onClick={onLogin} 
-                isLoading={loading} 
-                isDisabled={username === "" }
-              >
-                Login
-              </Button>
-              <ChakraLink
-                as={ReactRouterLink} 
-                fontSize="sm" 
-                textAlign="center"
-                to="/create-user"
-              >
-                Create a new account
-              </ChakraLink>
-            </Stack>
-          </Card>
+                <Button 
+                  onClick={onLogin} 
+                  isLoading={loading} 
+                  isDisabled={username === "" }
+                >
+                  Login
+                </Button>
+                <ChakraLink
+                  as={ReactRouterLink} 
+                  fontSize="sm" 
+                  textAlign="center"
+                  to="/create-user"
+                >
+                  Create a new account
+                </ChakraLink>
+              </Stack>
+            </Card>
+          </Center>
+            </GridItem>
+            <GridItem colSpan={3} rowSpan={4} display={"grid"} boxSize={"xl"}>
+              <Center>
+              < Image src="fishing_boat.jpeg"></Image>
+              </Center>
+            </GridItem>
+            <GridItem rowSpan={1}></GridItem>
+            <GridItem rowSpan={1}><Footer/></GridItem>
+          </Grid>
           <AlertPopUp
             isOpen={sessionTimeout}
             header="Session Timeout"
             dialog="Your session has timed out. Please log in again."
             onClose={() => setSessionTimeout(false)}
           />
-        </Flex>
-        </>
+      </>
         )
         : (<ErrorPage/>)
       }

@@ -1,0 +1,47 @@
+{
+    "test_response": {
+        "granted_test": {
+            "test_1": 10000,
+            "test_2": 4000,
+            "test_3": 1500
+        },
+        "requested_test": {
+            "test_1": 3000,
+            "test_2": 10000,
+            "test_3": 10000
+        }
+    }
+}
+
+
+{
+    "test_1": {
+        "granted_test": 10000,
+        "requested_test": 3000
+    },
+    "test_2": {
+        "granted_test": 4000,
+        "requested_test": 10000
+    },
+    "test_3": {
+        "granted_test": 1500,
+        "requested_test": 10000
+    },
+    
+}
+
+
+function transformObject(inputObject) {
+    const transformedObject = {};
+
+    // Iterate over the keys of granted_test or requested_test (they should have the same keys)
+    Object.keys(inputObject.quota_response.granted_quota).forEach(key => {
+        // Create a new object with the structure { granted_test: ..., requested_test: ... }
+        transformedObject[key] = {
+            granted_test: inputObject.quota_response.granted_quota[key],
+            requested_test: inputObject.quota_response.requested_quota[key]
+        };
+    });
+
+    return transformedObject;
+}

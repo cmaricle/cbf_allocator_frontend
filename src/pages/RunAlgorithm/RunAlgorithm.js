@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useReducer } from "react";
+import React, { useRef, useState, useEffect, useReducer } from "react";
 import { Link as ReactRouterLink, useLocation, useHistory } from 'react-router-dom';
 
 
@@ -28,30 +28,36 @@ import {
   SimpleGrid,
   NumberInput,
   NumberInputField,
-  FormErrorMessage,
+  Button,
   FormHelperText,
   FormControl,
   NumberIncrementStepper,
   NumberInputStepper,
   NumberDecrementStepper,
   Tooltip,
-  Spacer,
+  Center,
 } 
 from '@chakra-ui/react'
 import { IoIosSend } from "react-icons/io";
-import { CheckIcon } from "@chakra-ui/icons"
+import { CheckIcon, ExternalLinkIcon } from "@chakra-ui/icons"
 
 import * as api from '../../modules/api'
 
 import Form from "../../components/Form";
 import WebsiteHeader from "../../components/WebsiteHeader/WebsiteHeader";
 import AlertPopUp from "../../components/AlertPopUp/AlertPopUp";
+import  RunAlgorithmChart  from "../../components/BarChart/BarChart";
 import theme from "../../theme";
 
 function RunAlgorithm() {
   const location = useLocation();
+  const history = useHistory();
+  if (!location.state) {
+    history.push("/")
+  }
   const {species, quota, license, quotaCost, licenseCost, year, speciesList, loading} = location.state;
   const [algorithmResults, setAlgorithmResults] = useState({});
+  const [response, setResponse] = useState({});
   const [noResults, setNoResults] = useState(false);
   const [error, setError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -64,13 +70,13 @@ function RunAlgorithm() {
   const [loadingGrant, setLoadingGrant] = useState(false)
   const [checkingFunds, setCheckingFunds] = useState(false)
   const [insufficientFunds, setInsufficientFunds] = useState(false)
-  const history = useHistory();
   const toast = useToast();
   const [, forceUpdate] = useReducer(x => x + 1, 0);
 
   const runAlgorithm = async (species, quota) => {
     setIsLoading(true);
     setUpdatedValues({})
+    localStorage.removeItem("results")
     api.runAlgorithm(
         {
           "species": species, 
@@ -91,6 +97,8 @@ function RunAlgorithm() {
             setAlgorithmResults(results)
           } else {
             setNoResults(false);
+            setResponse(results);
+            localStorage.setItem("results", JSON.stringify(results))
             const quotaDict = createRows(results)
             const licenseDict = createRows(results, "license")
             const quotaDictEmpty = Object.values(quotaDict).length === 0
@@ -176,23 +184,50 @@ function RunAlgorithm() {
     if (!localAlgorithmResults || !rows || !headers || localAlgorithmResults["quota"] !== quota || localAlgorithmResults["species"] !== species) {
       runAlgorithm(species, quota);
     } else {
-      setRows(JSON.parse(rows))
+      if (rows !== undefined) {
+        setRows(JSON.parse(rows))
+      }
       setRowHeaders(JSON.parse(headers))
       setAlgorithmResults(localAlgorithmResults)
       setIsLoading(false);
     }
   }, [quota, species])
 
-  const onInputChange = (e) => {
-    const changedRow = e.target.name;
+  const getTotalGrantColumn = (nation, updatedValues, requestedAmount, index) => {
+    if (Object.keys(JSON.parse(localStorage.getItem("results"))).length > 0) {
+      let type = "quota"
+      if (license > 0 && quota === 0 || index === 3) {
+        type = "license"
+      }
+      if (localStorage.getItem("results").includes(type)) {
+        let originalGrants = JSON.parse(localStorage.getItem("results"))[`${type}_response`][`granted_${type}`]
+        let grantTotal = 0
+        for (const key in originalGrants) {
+          if (key !== nation) {
+            if (key in updatedValues) {
+              grantTotal = grantTotal + updatedValues[key][`${type}`]
+            } else {
+              grantTotal = grantTotal + originalGrants[key]
+            }
+          }
+        }
+        return Math.min(algorithmResults[`${type}`] - grantTotal, requestedAmount)
+      }
+    }
+    return requestedAmount
+  }
+
+  const onInputChange = (e, name=null) => {
+    const changedRow = !name ? e.target.name : name;
     const nationName = changedRow.split("-")[0]
     var updatedNationValues = updatedValues
-    var val = e.target.value;
+    var val = !name ? e.target.value : e;
     if (!(nationName in updatedNationValues)) {
       updatedNationValues[nationName] = {}
     }
     if (quota > 0 && license > 0) {
         const changeType = changedRow.split("-")[1]
+        console.log(changeType)
         if (changeType == 1) {
           updatedNationValues[nationName]["quota"] = Number(val)
         } else {
@@ -203,7 +238,7 @@ function RunAlgorithm() {
     } else {
       updatedNationValues[nationName]["quota"] = Number(val)
     }
-    setUpdatedValues(updatedNationValues)
+   
     forceUpdate()
   }
 
@@ -374,8 +409,12 @@ function RunAlgorithm() {
     } 
   }
 
-  const isInvalidValue = (key, item, index) => {
-    return Number(format(getValue(key, item, index))) > Number(rows[key][index - 1])
+  const getAspectRatio = () => {
+    if (quota > 0 && license > 0) { 
+      return 3
+    } else {
+      return 6
+    }
   }
 
   const submitButtonDisabled = (key, row) => {
@@ -383,7 +422,6 @@ function RunAlgorithm() {
     row.forEach(function(item, index) {
       if (index % 2 !== 0) {
         const value = getValue(key, item, index)
-        console.log(value)
         if (value > row[index - 1]) {
           result.push(true)
         } else if (value === 0) {
@@ -394,28 +432,107 @@ function RunAlgorithm() {
         }
       } 
     })
-    console.log(result.includes(true))
     return result.includes(true) || (result.length === 2 ? (result[0] === 0 && result[1] === 0) : result[0] === 0)
+  }
+
+  const transformObject = (inputObject, type) => {
+    if (Object.keys(inputObject).length === 0) {
+      inputObject = JSON.parse(localStorage.getItem("results"))
+    }
+    const transformedObject = [];
+    let granted_key = `granted_${type}`
+    let requested_key = `requested_${type}`
+
+    Object.keys(inputObject[`${type}_response`][granted_key]).forEach(key => {
+        let data = {
+          name: key,
+        }
+        if (!(key in updatedValues) || !JSON.stringify(updatedValues).includes(type)) {
+          data[granted_key] = inputObject[`${type}_response`][granted_key][key]
+          data[requested_key] = inputObject[`${type}_response`][requested_key][key]
+        } else {
+          data[granted_key] = updatedValues[key][type]
+          data[requested_key] = inputObject[`${type}_response`][requested_key][key]
+        }
+
+        transformedObject.push(data)
+    });
+    return transformedObject;
+  }
+
+  const getType = (index) => {
+    if (quota > 0 && index === 1) {
+      return "quota"
+    } else {
+      return "license"
+    }
   }
 
   return (
   <ChakraProvider theme={theme}>
+    <Box>
     <Grid
       templateAreas={`"header"
                       "main"
                       "footer"`}
       gap='10'
+      minHeight="100vh"
+      width="100vw"
     >
       <GridItem area={"header"}>
         <WebsiteHeader/>
-    </GridItem>
+        <Divider/>
+      </GridItem>
     <GridItem area={"main"}>
       {
       isLoading ? ((<Progress size="xs" isIndeterminate variant="basic"></Progress>)) :
         Object.keys(algorithmResults).length > 0  && !noResults ? 
-      (<TableContainer>
+      (
+      <Grid templateRows={"repeat(2, 1fr)"} gap={5} alignItems={"center"}>
+          <GridItem rowSpan={1}>
+          
+          <Grid templateColumns={license > 0 && quota > 0 ? "repeat(2, 1fr)" : "repeat(1, 1fr)"} gap={5}>
+          {
+            Object.keys(response).length > 0 || Object.keys(JSON.parse(localStorage.getItem("results")).length > 0) ? 
+              <>
+              {
+                quota > 0 && algorithmResults["quota"] === quota && algorithmResults["species"] === species ?
+                <GridItem>
+                  <Center><Heading as="i" size="md">Quota Distribution</Heading></Center>
+                  <RunAlgorithmChart aspectRatio={getAspectRatio()} type="quota" data={transformObject(response, "quota")}/>
+                </GridItem> : <></> 
+              }
+              {
+                license > 0 && localStorage.getItem("results").includes("license") ?
+                <GridItem>
+                <Center><Heading as="i" size="md">License Distribution</Heading></Center>
+                <RunAlgorithmChart aspectRatio={getAspectRatio()} type="license" data={transformObject(response, "license")}></RunAlgorithmChart>
+                </GridItem> : <></>
+              }
+              </>
+            : <></>
+          }
+        </Grid>
+        </GridItem>
+        <GridItem rowSpan={1}>
+      <TableContainer>
           <Table>
-            <TableCaption>{`Total available ${species} quota: ${quota} license: ${license}`}</TableCaption>
+            <TableCaption>
+              <Grid templateColumns={"repeat(6, 1fr)"}>
+                <GridItem/>
+                <GridItem colSpan={2}>
+                  <Text>{`Total available ${species} quota: ${quota} license: ${license}`}</Text>
+                </GridItem>
+                <GridItem><Center><Divider orientation="vertical"/></Center></GridItem>
+                <GridItem> <Form 
+                buttonName="Rerun Algorithm" 
+                link={true}
+                speciesList={speciesList}
+              ></Form></GridItem>
+              <GridItem/>
+              </Grid>
+            
+           </TableCaption>
             <Thead>
               <Tr>
                 {
@@ -431,7 +548,12 @@ function RunAlgorithm() {
             {
               Object.entries(rows).map(([key, value]) => (
                 <Tr key={key}>
-                  <Td><ChakraLink to={`/profile/${key}`} as={ReactRouterLink} target="_blank" rel="noopener noreferrer">{key}</ChakraLink></Td>
+                  <Td><ChakraLink 
+                    to={`/profile/${key}`} 
+                    as={ReactRouterLink} 
+                    target="_blank" 
+                    rel="noopener noreferrer">{key} <ExternalLinkIcon></ExternalLinkIcon>
+                    </ChakraLink></Td>
                   {value.map((item, index) => (
                     <Td key={`${key}-${index}`} isNumeric={true}>
                       {(index % 2 !== 1) ? (
@@ -439,19 +561,26 @@ function RunAlgorithm() {
                       ) : (nationStatus(key)) ? 
                       (<Text>{getValue(key, item, index)}</Text>) :
                        (
-                        <FormControl 
-                          isInvalid={isInvalidValue(key, item, index)}
-                        >
+                        // <FormControl 
+                        //   isInvalid={isInvalidValue(key, item, index)}
+                        // >
                         <NumberInput
                           name={`${key}-${index}`}
                           min={0}
-                          max={Number(rows[key][index - 1])}
+                          step={getType(index) === "quota" ? 500 : 1}
+                          max={getTotalGrantColumn(key, updatedValues, Number(rows[key][index - 1], index))}
                           keepWithinRange={true}
+                          clampValueOnBlur={true}
                           value={Number(format(getValue(key, item, index)))}
                           onInput={onInputChange}
-                        ><NumberInputField/>  
-                    </NumberInput>
-                    </FormControl>
+                          onChange={(e) => onInputChange(e, `${key}-${index}`)}
+                        ><NumberInputField/>
+                            <NumberInputStepper>
+                            <NumberIncrementStepper />
+                            <NumberDecrementStepper />
+                          </NumberInputStepper>
+                      </NumberInput>
+                    // </FormControl>
                       )
                       }
                       
@@ -481,20 +610,25 @@ function RunAlgorithm() {
             }
             </Tbody>
           </Table>
-        </TableContainer>)
+        </TableContainer>
+        </GridItem>
+        </Grid>
+      )
          : noResults ? 
       (<Alert status="warning"><AlertIcon/>{algorithmResults["response"]}</Alert>) 
       : error ? (<Alert status="error"><AlertIcon/>Error processing request - please try again!</Alert>) 
       : <></>
     }
     </GridItem>
-    <GridItem area={"footer"}>
-      <Form 
-        buttonName="Rerun Algorithm" 
-        speciesList={speciesList}
-      ></Form>
-    </GridItem>
+    <GridItem p={3} area="footer" hidden={!noResults}>
+            <Form 
+              buttonName={"Rerun Algorithm"}
+              speciesList={speciesList}
+            > 
+            </Form>
+        </GridItem>
     </Grid>
+    </Box>
     <AlertPopUp 
       isOpen={submit && nationSubmitted !== ""} 
       onCancel={(e) => {setSubmit(false);}} 
