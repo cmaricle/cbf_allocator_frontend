@@ -29,7 +29,6 @@ import WebsiteHeader from "../../components/WebsiteHeader/WebsiteHeader";
 
 
 class NationPage extends Component {
-  
   constructor(props) {
     super(props);
     this.state = {

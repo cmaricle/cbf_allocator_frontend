@@ -50,6 +50,10 @@ class NationFormBody extends Component {
       )
     })
   }
+
+  componentWillUnmount() {
+    this.props.setLoading(false)
+  }
   
   format = (val) => {
     console.log(val)
@@ -140,6 +144,7 @@ NationFormBody.propTypes = {
   speciesToShowInSelect: PropTypes.array.isRequired,
   loadingNation: PropTypes.bool.isRequired,
   fundsUpdated: PropTypes.bool.isRequired,
+  setLoading: PropTypes.func.isRequired,
 }
 
 export default NationFormBody;

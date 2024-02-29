@@ -272,6 +272,7 @@ function Form({ speciesList, nationsList }) {
                   speciesToShowInSelect={speciesToShowInSelect}
                   loadingNation={loadingNation}
                   fundsUpdated={fundsUpdated}
+                  setLoading={setLoading}
               ></NationFormBody>
               <NationFormRequestBody
                 hidden={updateType !== NATION_REQUEST_UPDATE_TYPE}
