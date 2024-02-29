@@ -13,7 +13,7 @@ class RunAlgorithmChart extends PureComponent {
 
   render() {
     return (
-      <ResponsiveContainer aspect={2.6}>
+      <ResponsiveContainer aspect={this.props.aspectRatio}>
         <BarChart
           data={this.props.data}
           margin={{
@@ -39,6 +39,7 @@ class RunAlgorithmChart extends PureComponent {
 RunAlgorithmChart.propTypes = {
   data: PropTypes.object.isRequired,
   type: PropTypes.string.isRequired,
+  aspectRatio: PropTypes.number.isRequired,
 }
 
 export default RunAlgorithmChart

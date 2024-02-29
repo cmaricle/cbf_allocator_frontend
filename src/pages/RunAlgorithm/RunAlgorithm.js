@@ -28,7 +28,7 @@ import {
   SimpleGrid,
   NumberInput,
   NumberInputField,
-  Flex,
+  Button,
   FormHelperText,
   FormControl,
   NumberIncrementStepper,
@@ -406,6 +406,14 @@ function RunAlgorithm() {
     } 
   }
 
+  const getAspectRatio = () => {
+    if (quota > 0 && license > 0) { 
+      return 3
+    } else {
+      return 6
+    }
+  }
+
   const submitButtonDisabled = (key, row) => {
     var result = []
     row.forEach(function(item, index) {
@@ -431,9 +439,7 @@ function RunAlgorithm() {
     const transformedObject = [];
     let granted_key = `granted_${type}`
     let requested_key = `requested_${type}`
-    console.log(inputObject)
-    console.log(updatedValues)
-    console.log(type)
+
     Object.keys(inputObject[`${type}_response`][granted_key]).forEach(key => {
         let data = {
           name: key,
@@ -448,7 +454,6 @@ function RunAlgorithm() {
 
         transformedObject.push(data)
     });
-    console.log(transformedObject)
     return transformedObject;
   }
 
@@ -462,12 +467,14 @@ function RunAlgorithm() {
 
   return (
   <ChakraProvider theme={theme}>
+    <Box>
     <Grid
       templateAreas={`"header"
                       "main"
                       "footer"`}
       gap='6'
-      maxHeight="100vh"
+      minHeight="100vh"
+      width="100vw"
     >
       <GridItem area={"header"}>
         <WebsiteHeader/>
@@ -478,9 +485,9 @@ function RunAlgorithm() {
       isLoading ? ((<Progress size="xs" isIndeterminate variant="basic"></Progress>)) :
         Object.keys(algorithmResults).length > 0  && !noResults ? 
       (
-        <Flex justify={"center"}>
       <Grid templateRows={"repeat(2, 1fr)"} gap={5}>
           <GridItem rowSpan={1}>
+          
           <Grid templateColumns={license > 0 && quota > 0 ? "repeat(2, 1fr)" : "repeat(1, 1fr)"} gap={5}>
           {
             Object.keys(response).length > 0 || Object.keys(JSON.parse(localStorage.getItem("results")).length > 0) ? 
@@ -489,14 +496,14 @@ function RunAlgorithm() {
                 quota > 0 && algorithmResults["quota"] === quota && algorithmResults["species"] === species ?
                 <GridItem>
                   <Center><Heading as="i" size="md">Quota Distribution</Heading></Center>
-                  <RunAlgorithmChart type="quota" data={transformObject(response, "quota")}/>
+                  <RunAlgorithmChart aspectRatio={getAspectRatio()} type="quota" data={transformObject(response, "quota")}/>
                 </GridItem> : <></> 
               }
               {
                 license > 0 && localStorage.getItem("results").includes("license") ?
                 <GridItem>
                 <Center><Heading as="i" size="md">License Distribution</Heading></Center>
-                <RunAlgorithmChart type="license" data={transformObject(response, "license")}></RunAlgorithmChart>
+                <RunAlgorithmChart aspectRatio={getAspectRatio()} type="license" data={transformObject(response, "license")}></RunAlgorithmChart>
                 </GridItem> : <></>
               }
               </>
@@ -507,7 +514,22 @@ function RunAlgorithm() {
         <GridItem rowSpan={1}>
       <TableContainer>
           <Table>
-            <TableCaption>{`Total available ${species} quota: ${quota} license: ${license}`}</TableCaption>
+            <TableCaption>
+              <Grid templateColumns={"repeat(6, 1fr)"}>
+                <GridItem/>
+                <GridItem colSpan={2}>
+                  <Text>{`Total available ${species} quota: ${quota} license: ${license}`}</Text>
+                </GridItem>
+                <GridItem><Center><Divider orientation="vertical"/></Center></GridItem>
+                <GridItem> <Form 
+                buttonName="Rerun Algorithm" 
+                link={true}
+                speciesList={speciesList}
+              ></Form></GridItem>
+              <GridItem/>
+              </Grid>
+            
+           </TableCaption>
             <Thead>
               <Tr>
                 {
@@ -583,7 +605,6 @@ function RunAlgorithm() {
         </TableContainer>
         </GridItem>
         </Grid>
-        </Flex>
       )
          : noResults ? 
       (<Alert status="warning"><AlertIcon/>{algorithmResults["response"]}</Alert>) 
@@ -591,15 +612,8 @@ function RunAlgorithm() {
       : <></>
     }
     </GridItem>
-    <GridItem area={"footer"} p={2}>
-      <Center>
-      <Form 
-        buttonName="Rerun Algorithm" 
-        speciesList={speciesList}
-      ></Form>
-      </Center>
-    </GridItem>
     </Grid>
+    </Box>
     <AlertPopUp 
       isOpen={submit && nationSubmitted !== ""} 
       onCancel={(e) => {setSubmit(false);}} 
