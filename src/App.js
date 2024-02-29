@@ -19,24 +19,24 @@ import NotFound from './pages/NotFound'
 import NationPage from './pages/NationPage/NationPage';
 
 
-const PrivateRoute = ({ component: Component, ...rest }) => {
+const PrivateRoute = ({ component: Component, runAlgo, location, ...rest }) => {
   const { authenticated } = useAuth();
 
   return (
     <Route
       {...rest}
       render={(props) =>
-        authenticated ? (
+        authenticated && (runAlgo ? location.state : true) ? 
+		(
           <Component {...props} />
         ) : (
-          <Redirect to="/login" />
+          <Redirect to={(!runAlgo ? true : location.state) ? "/login" : "/"} />
         )
       }
     />
   );
 };
 
-  
 
 class App extends Component {
 	render() {
@@ -48,9 +48,9 @@ class App extends Component {
 					<Route path="/user-verification" component={UserVerification} />
 					<Route path="/error" component={ErrorPage}/>
 					<Route path="/404" component={NotFound} />
-					<PrivateRoute path="/profile/:id" component={NationPage}/>
-					<PrivateRoute path="/run-algorithm" component={RunAlgorithm} />
-					<PrivateRoute path="/" component={MainPage}/>
+					<PrivateRoute path="/profile/:id" runAlgo={false} component={NationPage}/>
+					<PrivateRoute path="/run-algorithm" component={RunAlgorithm} runAlgo={true}/>
+					<PrivateRoute path="/" runAlgo={false} component={MainPage}/>
 				</Switch>
 			</Router>
 		);

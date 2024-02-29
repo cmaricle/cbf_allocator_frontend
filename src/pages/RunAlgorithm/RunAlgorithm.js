@@ -51,6 +51,10 @@ import theme from "../../theme";
 
 function RunAlgorithm() {
   const location = useLocation();
+  const history = useHistory();
+  if (!location.state) {
+    history.push("/")
+  }
   const {species, quota, license, quotaCost, licenseCost, year, speciesList, loading} = location.state;
   const [algorithmResults, setAlgorithmResults] = useState({});
   const [response, setResponse] = useState({});
@@ -66,7 +70,6 @@ function RunAlgorithm() {
   const [loadingGrant, setLoadingGrant] = useState(false)
   const [checkingFunds, setCheckingFunds] = useState(false)
   const [insufficientFunds, setInsufficientFunds] = useState(false)
-  const history = useHistory();
   const toast = useToast();
   const [, forceUpdate] = useReducer(x => x + 1, 0);
 
@@ -181,7 +184,9 @@ function RunAlgorithm() {
     if (!localAlgorithmResults || !rows || !headers || localAlgorithmResults["quota"] !== quota || localAlgorithmResults["species"] !== species) {
       runAlgorithm(species, quota);
     } else {
-      setRows(JSON.parse(rows))
+      if (rows !== undefined) {
+        setRows(JSON.parse(rows))
+      }
       setRowHeaders(JSON.parse(headers))
       setAlgorithmResults(localAlgorithmResults)
       setIsLoading(false);
@@ -612,6 +617,13 @@ function RunAlgorithm() {
       : <></>
     }
     </GridItem>
+    <GridItem p={3} area="footer" hidden={!noResults}>
+            <Form 
+              buttonName={"Rerun Algorithm"}
+              speciesList={speciesList}
+            > 
+            </Form>
+        </GridItem>
     </Grid>
     </Box>
     <AlertPopUp 
