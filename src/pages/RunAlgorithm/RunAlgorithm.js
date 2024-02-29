@@ -39,7 +39,7 @@ import {
 } 
 from '@chakra-ui/react'
 import { IoIosSend } from "react-icons/io";
-import { CheckIcon } from "@chakra-ui/icons"
+import { CheckIcon, ExternalLinkIcon } from "@chakra-ui/icons"
 
 import * as api from '../../modules/api'
 
@@ -218,8 +218,6 @@ function RunAlgorithm() {
   }
 
   const onInputChange = (e, name=null) => {
-    console.log(e)
-    console.log(name)
     const changedRow = !name ? e.target.name : name;
     const nationName = changedRow.split("-")[0]
     var updatedNationValues = updatedValues
@@ -477,7 +475,7 @@ function RunAlgorithm() {
       templateAreas={`"header"
                       "main"
                       "footer"`}
-      gap='6'
+      gap='10'
       minHeight="100vh"
       width="100vw"
     >
@@ -490,7 +488,7 @@ function RunAlgorithm() {
       isLoading ? ((<Progress size="xs" isIndeterminate variant="basic"></Progress>)) :
         Object.keys(algorithmResults).length > 0  && !noResults ? 
       (
-      <Grid templateRows={"repeat(2, 1fr)"} gap={5}>
+      <Grid templateRows={"repeat(2, 1fr)"} gap={5} alignItems={"center"}>
           <GridItem rowSpan={1}>
           
           <Grid templateColumns={license > 0 && quota > 0 ? "repeat(2, 1fr)" : "repeat(1, 1fr)"} gap={5}>
@@ -550,7 +548,12 @@ function RunAlgorithm() {
             {
               Object.entries(rows).map(([key, value]) => (
                 <Tr key={key}>
-                  <Td><ChakraLink to={`/profile/${key}`} as={ReactRouterLink} target="_blank" rel="noopener noreferrer">{key}</ChakraLink></Td>
+                  <Td><ChakraLink 
+                    to={`/profile/${key}`} 
+                    as={ReactRouterLink} 
+                    target="_blank" 
+                    rel="noopener noreferrer">{key} <ExternalLinkIcon></ExternalLinkIcon>
+                    </ChakraLink></Td>
                   {value.map((item, index) => (
                     <Td key={`${key}-${index}`} isNumeric={true}>
                       {(index % 2 !== 1) ? (

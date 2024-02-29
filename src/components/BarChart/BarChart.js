@@ -29,7 +29,7 @@ class RunAlgorithmChart extends PureComponent {
           <Tooltip />
           <Legend />
           <Bar dataKey={`requested_${this.props.type}`} stackId="a" fill="#31473A" />
-          <Bar dataKey={`granted_${this.props.type}`} stackId="a" fill="#EDF4F2" />
+          <Bar dataKey={`granted_${this.props.type}`} stackId="a" fill="#C4BA84" />
         </BarChart>
         </ResponsiveContainer>
     );
