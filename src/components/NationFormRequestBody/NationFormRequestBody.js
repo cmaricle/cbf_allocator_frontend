@@ -16,7 +16,11 @@ import {
   SimpleGrid,
   ChakraProvider,
   Spinner,
+  Heading,
+  Divider,
 } from '@chakra-ui/react';
+import { Select, CreatableSelect, AsyncSelect } from "chakra-react-select";
+
 
 import ApiSelect from "../Select/Select";
 import * as api from '../../modules/api';
@@ -34,7 +38,25 @@ class NationFormRequestBody extends Component {
       selectedNation: "",
       selectedSpecies: "",
       loading: false,
+      nationOptions: [],
+
     };
+  }
+  componentDidMount() {
+    this.props.nationsList.forEach(item => {
+      this.state.nationOptions.push(
+        {
+          "value": item,
+          "label": item,
+          "quota": 0,
+          "license": 0,
+        }
+      )
+    })
+  }
+
+  componentWillUnmount() {
+    this.handleNationChange([])
   }
 
   setNation = e => {
@@ -55,7 +77,29 @@ class NationFormRequestBody extends Component {
           result["body"] = {};
         }
         this.setState({ speciesRequestForYear: result["body"] });
-        this.setDefaultQuotaAndLicenseValue(result["body"]);
+        console.log(result["body"])
+        var updatedNationOptions = []
+        this.props.nationToShowInSelect.forEach(nation => {
+          if (nation["label"] in result["body"]) {
+            updatedNationOptions.push(
+              {
+                ...nation,
+                "quota": result["body"][nation["label"]]["requested_quota"],
+                "license": result["body"][nation["label"]]["requested_license"]
+              }
+            )
+          } else {
+            updatedNationOptions.push(
+              {
+                ...nation,
+                "quota": 0,
+                "license": 0
+              }
+            )
+          }
+        })
+        console.log(updatedNationOptions)
+        this.props.handleNationChange(updatedNationOptions)
         this.props.setUserUpdated(false);
       }
       this.state.loading = false;
@@ -83,28 +127,58 @@ class NationFormRequestBody extends Component {
   };
 
   setDefaultQuotaAndLicenseValue = (yearRequestForSpecies, nation = this.state.selectedNation) => {
-    this.state.loading = true;
+    this.setState({loading: true});
     const quotaValue = yearRequestForSpecies[nation]?.requested_quota || 0;
     this.props.setQuotaValue(quotaValue);
     const licenseValue = yearRequestForSpecies[nation]?.requested_license || 0;
     this.props.setLicenseValue(licenseValue);
-    this.state.loading = false;
+    this.setState({loading: false});
   };
 
-  updateQuotaValue = value => {
+  updateQuotaValue = (value, index) => {
     if(isNaN(value)) {
       value = 0
     }
     this.props.setUserUpdated(true);
     this.props.setQuotaValue(Number(value));
+    var nationToShowInSelect = this.props.nationToShowInSelect
+    console.log(nationToShowInSelect)
+    nationToShowInSelect[index]["quota"] = value
+    nationToShowInSelect[index]["updated"] = true
+    this.props.handleNationChange(nationToShowInSelect)
   };
 
-  updateLicenseValue = value => {
+
+  updateLicenseValue = (value, index) => {
     if(isNaN(value)) {
       value = 0
     }
     this.props.setUserUpdated(true);
+    var nationToShowInSelect = this.props.nationToShowInSelect
+    nationToShowInSelect[index]["license"] = value
+    nationToShowInSelect[index]["updated"] = true
+    this.props.handleNationChange(nationToShowInSelect)
     this.props.setLicenseValue(Number(value));
+  }
+
+  handleNationChange = (event) => {
+    Array.prototype.diff = function(a) {
+      var difference = this.filter(function(i) {return a.indexOf(i) < 0;});
+      if (difference) {
+        return difference[0]
+      }
+      else {
+        return null
+      }
+    };
+    let difference = event.diff(this.props.nationToShowInSelect)
+    if (this.state.speciesRequestForYear && difference && difference["label"] in this.state.speciesRequestForYear) {
+      delete event[event.indexOf(difference)]
+      difference["quota"] = this.state.speciesRequestForYear[difference["label"]]["requested_quota"]
+      difference["license"] = this.state.speciesRequestForYear[difference["label"]]["requested_license"]
+      event.push(difference)
+    }
+    this.props.handleNationChange(event)
   }
 
   render() {
@@ -112,69 +186,88 @@ class NationFormRequestBody extends Component {
       <ChakraProvider theme={theme}>
       <VStack divider={<StackDivider borderColor='gray.200' hidden={this.props.hidden} />} spacing={2} align='stretch' hidden={this.props.hidden}>
         <Box>
-        <ApiSelect listType="nation" list={this.props.nationsList} onSelect={this.setNation} />
+        <ApiSelect listType="species" list={this.props.speciesList} onSelect={this.setSpecies} />
         </Box>
-        <Box hidden={this.state.selectedNation === ""}>
-        <ApiSelect hidden={this.state.selectedNation === ""} listType="species" list={this.props.speciesList} onSelect={this.setSpecies} />
-        </Box>
-        <RadioGroup hidden={this.state.selectedSpecies === ""} onChange={this.setYear} value={this.state.selectedYear}>
+        <FormControl hidden={this.state.selectedSpecies === ""}>
+          <Select
+            isMulti
+            name="species"
+            options={this.state.nationOptions}
+            placeholder={`Enter nation(s)`}
+            closeMenuOnSelect={false}
+            onChange={this.handleNationChange}
+            value={this.props.nationToShowInSelect}
+          />
+        </FormControl>
+        <RadioGroup p={2} hidden={this.props.nationToShowInSelect.length === 0} onChange={this.setYear} value={this.state.selectedYear}>
           <Stack direction="row">
             {[2024, 2025, 2026, 2027, 2028].map(year => (
               <Radio key={year} value={String(year)}>{year}</Radio>
             ))}
           </Stack>
         </RadioGroup>
-        <Box hidden={this.state.selectedSpecies === ""}>
-        <FormControl isInvalid={this.props.isInvalid(this.props.quotaValue, MAX_QUOTA_VALUE)}>
-          <SimpleGrid columns={2} spacing={10}>
-              <FormLabel>
-                Enter Quota (lbs)
-              </FormLabel>
-                { this.state.loading ?
-                (<Spinner/>) :
-                ( 
-                  <NumberInput
+        <Box hidden={this.state.selectedYear === ""}>
+          {
+            this.props.nationToShowInSelect.map((value, index) => {
+              return(
+              <React.Fragment>
+               <Heading size={"md"}>{value["label"]}</Heading> 
+               <Divider/>
+              <FormControl p={2} isInvalid={this.props.isInvalid(value["quota"], MAX_QUOTA_VALUE)}>
+                <SimpleGrid columns={2} spacing={10}>
+                    <FormLabel>
+                      Enter Quota (lbs)
+                    </FormLabel>
+                      { this.state.loading ?
+                      (<Spinner/>) :
+                      ( 
+                        <NumberInput
+                          min={0}
+                          max={MAX_QUOTA_VALUE}
+                          value={value["quota"]}
+                          onChange={(_, val) => this.updateQuotaValue(val, index)}
+                        >
+                        <NumberInputField/>
+                        {
+                          this.props.isInvalid(this.props.quotaValue, MAX_QUOTA_VALUE) ? (
+                            <FormErrorMessage>Enter valid quota.</FormErrorMessage>
+                          ) : (
+                            <FormHelperText>Enter a value between 0-100000</FormHelperText>
+                          )
+                        }
+                        </NumberInput>
+                      ) 
+                    }
+                </SimpleGrid>
+              </FormControl>
+              <FormControl p={2} isInvalid={this.props.isInvalid(value["license"], MAX_LICENSE_VALUE)}>
+              <SimpleGrid columns={2} spacing={10}>
+                  <FormLabel>
+                    Enter License
+                  </FormLabel>
+                  { this.state.loading ? 
+                  (<Spinner/>) :
+                  (<NumberInput
                     min={0}
-                    max={MAX_QUOTA_VALUE}
-                    value={this.props.quotaValue.toLocaleString()}
-                    onChange={(_, value) => this.updateQuotaValue(value)}
+                    max={MAX_LICENSE_VALUE}
+                    value={value["license"]}
+                    onChange={(_, value) => this.updateLicenseValue(value, index)}
                   >
-                  <NumberInputField/>
-                  {
-                    this.props.isInvalid(this.props.quotaValue, MAX_QUOTA_VALUE) ? (
-                      <FormErrorMessage>Enter valid quota.</FormErrorMessage>
-                    ) : (
-                      <FormHelperText>Enter a value between 0-100000</FormHelperText>
-                    )
-                  }
-                  </NumberInput>
-                ) 
-              }
-          </SimpleGrid>
-        </FormControl>
-        <FormControl isInvalid={this.props.isInvalid(this.props.licenseValue, MAX_LICENSE_VALUE)}>
-          <SimpleGrid columns={2} spacing={10}>
-              <FormLabel>
-                Enter License
-              </FormLabel>
-              { this.state.loading ? 
-              (<Spinner/>) :
-              (<NumberInput
-                min={0}
-                max={MAX_LICENSE_VALUE}
-                value={this.props.licenseValue}
-                onChange={(_, value) => this.updateLicenseValue(value)}
-              >
-                <NumberInputField />
-                {this.props.isInvalid(this.props.licenseValue, MAX_LICENSE_VALUE) ? (
-                <FormErrorMessage>Enter valid license value.</FormErrorMessage>
-              ) : (
-                <FormHelperText>Enter a value between 0-50</FormHelperText>
-              )}
-              </NumberInput>)
-            }
-          </SimpleGrid>
-        </FormControl>
+                    <NumberInputField />
+                    {this.props.isInvalid(this.props.licenseValue, MAX_LICENSE_VALUE) ? (
+                    <FormErrorMessage>Enter valid license value.</FormErrorMessage>
+                  ) : (
+                    <FormHelperText>Enter a value between 0-50</FormHelperText>
+                  )}
+                  </NumberInput>)
+                }
+              </SimpleGrid>
+            </FormControl>
+            </React.Fragment>
+            )})
+          }
+        
+        
         </Box>
       </VStack>
       </ChakraProvider>
@@ -195,6 +288,8 @@ NationFormRequestBody.propTypes = {
   setSelectedYear: PropTypes.func.isRequired,
   nationsList: PropTypes.array.isRequired,
   speciesList: PropTypes.array.isRequired,
+  nationToShowInSelect: PropTypes.array.isRequired,
+  handleNationChange: PropTypes.func.isRequired,
 };
 
 export default NationFormRequestBody;

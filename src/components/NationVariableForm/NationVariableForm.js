@@ -39,6 +39,7 @@ function Form({ speciesList, nationsList }) {
   const [confirmed, setConfirmed] = useState(false);
   const [speciesInputVariable, setSpeciesInputVariable, speciesInputVariableRef] = useState([]);
   const [speciesToShowInSelect, setSpeciesToShowInSelect] = useState([])
+  const [nationToShowInSelect, setNationToShowInSelect] = useState([])
   const [loading, setLoading] = useState(false);
   const [disableSubmitButton, setDisableSubmitButton] = useState(true);
   const [userUpdated, setUserUpdated] = useState(false)
@@ -120,6 +121,11 @@ function Form({ speciesList, nationsList }) {
     setDisableSubmitButton(true)
   }
 
+  function handleNationInputVariable(event) {
+    setNationToShowInSelect(event)
+
+  }
+
   function handleInputChange(event) {
     var strVal = String(event)
     strVal.replace('/^0*(\S+)/', '')
@@ -196,25 +202,28 @@ function Form({ speciesList, nationsList }) {
         })
         }
       } else if (updateType === NATION_REQUEST_UPDATE_TYPE){
-        api.updateNationRequest(
-          selectedNation,
-          selectedSpecies,
-          selectedYear, 
-          quotaValue,
-          licenseValue,
-        ).then((result) => {
-          parseResponse(result)
-        }).catch((exception) => {
-          setLoading(false);
-          toast({
-            description: "Error submitting data",
-            status: "error",
-            duration: 5000,
-            isClosable: true,
-          })
-        })
-      }
-
+        nationToShowInSelect.forEach(nation => {
+          if (nation["updated"]) {
+            api.updateNationRequest(
+              nation["label"],
+              selectedSpecies,
+              selectedYear, 
+              nation["quota"],
+              nation["license"],
+            ).then((result) => {
+              parseResponse(result)
+            }).catch((exception) => {
+              setLoading(false);
+              toast({
+                description: "Error submitting data",
+                status: "error",
+                duration: 5000,
+                isClosable: true,
+              })
+            })
+          }
+      })
+    }
     }
   }, [loading, confirmed])
 
@@ -267,6 +276,8 @@ function Form({ speciesList, nationsList }) {
               <NationFormRequestBody
                 hidden={updateType !== NATION_REQUEST_UPDATE_TYPE}
                 handleSpeciesRequestQuota={handleSpeciesRequestQuota}
+                nationToShowInSelect={nationToShowInSelect}
+                handleNationChange={handleNationInputVariable}
                 setUserUpdated={setUserUpdated}
                 setQuotaValue={setQuotaValue}
                 setLicenseValue={setLicenseValue}

@@ -20,11 +20,13 @@ import {
   ButtonGroup,
 } from '@chakra-ui/react'
 
+import { RepeatIcon } from "@chakra-ui/icons"
+
 import ApiSelect from '../Select'
 import QuotaSlider from "../QuotaSlider/QuotaSlider";
 import theme from "../../theme"
 
-function Form({buttonName, speciesList}) {
+function Form({buttonName, speciesList, link=false}) {
   const { isOpen, onOpen, onClose } = useDisclosure()
   const [selectedSpecies, setSelectedSpecies] = useState('');
   const [selectedQuota, setSelectedQuota] = useState(0);
@@ -79,10 +81,17 @@ function Form({buttonName, speciesList}) {
 
   return (
     <ChakraProvider theme={theme}>
-        <Button 
-          onClick={onOpen} 
-          variant={"solid"}
-        >{buttonName}</Button>
+      {
+        link ? 
+        <Link isExternal
+        onClick={onOpen} 
+      >{buttonName} <RepeatIcon mx='2px'/></Link> :
+      <Button        
+        onClick={onOpen} 
+        variant={"solid"}
+      >{buttonName}</Button>
+      }
+       
         <Modal isOpen={isOpen} onClose={extendOnClose}>
           <ModalOverlay />
           <ModalContent>
