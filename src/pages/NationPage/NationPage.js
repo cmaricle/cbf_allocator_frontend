@@ -286,7 +286,16 @@ class NationPage extends Component {
                     this.state.nationName in value ? 
                       value[this.state.nationName].map((grant, index) => 
                       <Box maxW="sm" align="center" p={4}>
-                      <Tooltip label={grant["timestamp"]}>
+                      <Tooltip 
+                        label={
+                            "user_id" in grant ? 
+                            <>
+                            <Text>{grant["timestamp"]}</Text>
+                            <Center><Text>Submitted by: {grant["user_id"]}</Text></Center>
+                            </> :
+                            <Text>{grant["timestamp"]}</Text>
+                        }
+                      >
                       <Card maxW="xs">
                         <Stat>
                           <StatLabel>{species}</StatLabel>

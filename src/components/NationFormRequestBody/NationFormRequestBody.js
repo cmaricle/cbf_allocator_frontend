@@ -57,6 +57,7 @@ class NationFormRequestBody extends Component {
 
   componentWillUnmount() {
     this.handleNationChange([])
+    this.props.setLoading(false)
   }
 
   setNation = e => {
@@ -290,6 +291,7 @@ NationFormRequestBody.propTypes = {
   speciesList: PropTypes.array.isRequired,
   nationToShowInSelect: PropTypes.array.isRequired,
   handleNationChange: PropTypes.func.isRequired,
+  setLoading: PropTypes.func.isRequired,
 };
 
 export default NationFormRequestBody;

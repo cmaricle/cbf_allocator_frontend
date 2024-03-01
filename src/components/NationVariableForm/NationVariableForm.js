@@ -231,10 +231,6 @@ function Form({ speciesList, nationsList }) {
     setLoading(true);
   }
 
-  function handleSpeciesRequestQuota(event) {
-    // console.log(event)
-  }
-
   return (
         <ChakraProvider theme={theme}>
         <Button 
@@ -276,7 +272,6 @@ function Form({ speciesList, nationsList }) {
               ></NationFormBody>
               <NationFormRequestBody
                 hidden={updateType !== NATION_REQUEST_UPDATE_TYPE}
-                handleSpeciesRequestQuota={handleSpeciesRequestQuota}
                 nationToShowInSelect={nationToShowInSelect}
                 handleNationChange={handleNationInputVariable}
                 setUserUpdated={setUserUpdated}
@@ -290,6 +285,7 @@ function Form({ speciesList, nationsList }) {
                 setSelectedYear={setSelectedYear}
                 nationsList={nationsList}
                 speciesList={speciesList}
+                setLoading={setLoading}
               />
               </VStack>
             </ModalBody>
