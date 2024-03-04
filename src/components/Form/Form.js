@@ -45,12 +45,12 @@ function Form({buttonName, speciesList, link=false}) {
   }
 
   const handleQuotaChange = (value) => {
-    setSelectedQuota(value)
+    setSelectedQuota(Number(value))
     setIsDisabled(false);
   }
 
   const handleLicenseChange = (value) => {
-    setSelectedLicense(value);
+    setSelectedLicense(Number(value));
     setIsDisabled(false);
   }
 
@@ -178,7 +178,7 @@ function Form({buttonName, speciesList, link=false}) {
                 }}
               >
                 <Button
-                  isDisabled={isDisabled || year === undefined} 
+                  isDisabled={isDisabled || year === undefined || selectedLicense === 0 && selectedQuota === 0} 
                   onClick={extendOnClose}
                   >
                   Run!
