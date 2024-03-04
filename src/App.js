@@ -6,6 +6,7 @@ import {
 	Switch,
 	Route,
 } from 'react-router-dom';
+import { Flex } from '@chakra-ui/react'
 
 import RunAlgorithm from './pages/RunAlgorithm/RunAlgorithm';
 import MainPage from './pages';

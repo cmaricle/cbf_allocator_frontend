@@ -54,7 +54,15 @@ const HomePageCard = ({header, description, button}) => {
     flexDirection="column"
     alignItems="center"
   >
-    <Heading p={2} as='h1' size='4xl' mb={4} noOfLines={1} textShadow={"rgba(0, 0, 0, 0.4) 0px 4px 5px"}>
+    <Heading 
+      p={2} 
+      as='h1' 
+      size='4xl' 
+      mb={4} 
+      noOfLines={1} 
+      textShadow={"rgba(0, 0, 0, 0.4) 0px 4px 5px"}
+      display="block"
+    >
     {header}
     </Heading>
     <Text textShadow={"rgba(0, 0, 0, 0.4) 0px 4px 5px"} fontSize={"2xl"}  mb={8}>
@@ -90,6 +98,18 @@ const ParallaxHeroSection = ({speciesList, nationList, image, description, headi
   const [position, setPosition] = useState(0);
   const [percent, setPercent] = useState(0)
   const [hidden, setHidden] = useState(true);
+  const [width, setWidth] = useState(window.innerWidth);
+  const isMobile = width <= 768;
+
+  function handleWindowSizeChange() {
+    setWidth(window.innerWidth);
+  }
+  useEffect(() => {
+      window.addEventListener('resize', handleWindowSizeChange);
+      return () => {
+          window.removeEventListener('resize', handleWindowSizeChange);
+      }
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -167,28 +187,30 @@ const ParallaxHeroSection = ({speciesList, nationList, image, description, headi
             />
       </Box>
     </Box>
-    ({
+    {
       percent > 0 ?
       (<Box height={"100vh"} >
         <Slide direction='left' in={percent> 80} style={{ zIndex: 10 }}>
-        <Grid templateColumns='repeat(6, 1fr)' templateRows="repeat(16, 1fr)">
-        <GridItem colSpan={6} rowSpan={4}><Box flex="1"></Box></GridItem>
-        <GridItem colSpan={1}><Box flex="1"></Box></GridItem>
-        <GridItem colSpan={2} rowSpan={8}>
+        <Grid templateColumns={!isMobile ? "repeat(6, 1fr)" : "repeat(8, 1fr)"}  templateRows={!isMobile ? "repeat(16, 1fr)" : "repeat(4, 1fr)"}>
+        <GridItem colSpan={!isMobile ? 6 : 8} rowSpan={!isMobile ? 4 : 1}><Box flex="1"></Box></GridItem>
+        <GridItem colSpan={!isMobile ? 1 : 2}><Box flex="1"></Box></GridItem>
+        <GridItem colSpan={!isMobile ? 2 : 4} rowSpan={!isMobile ? 8 : 2}>
           <Image
             src="https://images.pexels.com/photos/15034747/pexels-photo-15034747.jpeg?cs=srgb&dl=pexels-bet%C3%BCl-kara-15034747.jpg&fm=jpg&_gl=1*1a62lz6*_ga*MjkwMTMxNTcyLjE3MDg4MDY0MzI.*_ga_8JE65Q40S6*MTcwODgwNjQzMi4xLjEuMTcwODgwNjU3MC4wLjAuMA.."
-            boxSize="400px"
+            boxSize={!isMobile ? "400px" : "200px"}
           >
           </Image>
           </GridItem>
-          <GridItem hidden={percent < 95} colSpan={2} rowSpan={2}>
+          { isMobile ? <GridItem colSpan={3}></GridItem> : <></>}
+          <GridItem hidden={percent < 95} colSpan={!isMobile ? 2 : 3} rowSpan={!isMobile ? 2 : 1}>
             <ScaleFade in={percent > 95}>
               <Center>
                 <Heading color="green.800">How It Works</Heading>
               </Center>
             </ScaleFade>
           </GridItem>
-          <GridItem hidden={percent < 98} colSpan={2} rowSpan={3}>
+          { isMobile ? <><GridItem colSpan={2}></GridItem><GridItem colSpan={1}></GridItem></> : <></>}
+          <GridItem hidden={percent < 98} colSpan={!isMobile ? 2 : 6} rowSpan={!isMobile ? 3 : 1}>
             <Slide 
               direction='right' 
               in={percent > 98} 
@@ -200,8 +222,9 @@ const ParallaxHeroSection = ({speciesList, nationList, image, description, headi
                 </Text>
             </Slide>
           </GridItem>
-          <GridItem hidden={percent < 99} colSpan={2} rowSpan={2}>
-            <ScaleFade in={percent > 99}>
+          { isMobile ? <GridItem colSpan={3}></GridItem> : <></>}
+          <GridItem hidden={percent < 99} colSpan={2} rowSpan={1} >
+            <ScaleFade in={percent > 99} display="flex">
               <Center>
                 <Button hidden={percent < 99}>Learn More</Button>
               </Center>

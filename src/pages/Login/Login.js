@@ -36,10 +36,22 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [backendHealth, setBackendHealth] = useState(true);
   const [sessionTimeout, setSessionTimeout] = useState(false);
+  const [width, setWidth] = useState(window.innerWidth);
+  const isMobile = width <= 768;
 
   const onLogin = () => {
     setLoading(true);
   };
+
+  function handleWindowSizeChange() {
+    setWidth(window.innerWidth);
+  }
+  useEffect(() => {
+      window.addEventListener('resize', handleWindowSizeChange);
+      return () => {
+          window.removeEventListener('resize', handleWindowSizeChange);
+      }
+  }, []);
 
   useEffect(() => {
     if (localStorage.getItem("token")) {
@@ -102,7 +114,7 @@ const LoginPage = () => {
             <GridItem rowSpan={1} colSpan={8}><WebsiteHeader/></GridItem>
             <GridItem colSpan={8}/>
             <GridItem colSpan={1}/>
-            <GridItem colSpan={2} rowSpan={4}  display={"grid"}>
+            <GridItem colSpan={!isMobile ? 2 : 4} rowSpan={4}  display={"grid"}>
             <Center>
               <Card maxW="sm" p="10" boxShadow="lg">
               <Heading mb="4">Login</Heading>
@@ -145,7 +157,7 @@ const LoginPage = () => {
             </Card>
           </Center>
             </GridItem>
-            <GridItem colSpan={3} rowSpan={4} display={"grid"} boxSize={"xl"}>
+            <GridItem hidden={isMobile} colSpan={3} rowSpan={4} display={"grid"} boxSize={"xl"}>
               <Center>
               < Image src="fishing_boat.jpeg"></Image>
               </Center>
