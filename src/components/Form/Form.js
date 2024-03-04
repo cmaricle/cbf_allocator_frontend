@@ -72,8 +72,12 @@ function Form({buttonName, speciesList, link=false}) {
   const parse = (val, type="quota") => {
     val.replace(/^\$/, '')
     val.replace('/^0*(\S+)/', '')
+    console.log(val)
     if (Number(val) !== NaN && !val.includes("e") && !val.includes("-")) {
-      return val
+      if (val === ""){
+        return 0
+      }
+      return Number(val)
     } else {
       return type === "quota" ? quotaDollarAmount : licenseDollarAmount
     }
@@ -178,7 +182,7 @@ function Form({buttonName, speciesList, link=false}) {
                 }}
               >
                 <Button
-                  isDisabled={isDisabled || year === undefined || selectedLicense === 0 && selectedQuota === 0} 
+                  isDisabled={isDisabled || year === undefined || selectedLicense === 0 && selectedQuota === 0 || selectedQuota > 0 && quotaDollarAmount === 0 || selectedLicense > 0 && licenseDollarAmount === 0} 
                   onClick={extendOnClose}
                   >
                   Run!
