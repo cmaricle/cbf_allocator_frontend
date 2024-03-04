@@ -180,6 +180,7 @@ function Form({buttonName, speciesList, link=false}) {
                     loading: true,
                   },
                 }}
+                key={Date.now()}
               >
                 <Button
                   isDisabled={isDisabled || year === undefined || selectedLicense === 0 && selectedQuota === 0 || selectedQuota > 0 && quotaDollarAmount === 0 || selectedLicense > 0 && licenseDollarAmount === 0} 

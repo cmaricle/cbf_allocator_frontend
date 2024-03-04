@@ -158,6 +158,7 @@ function RunAlgorithm() {
   }
 
   useEffect(() => {
+    console.log("here")
     const unlisten = history.listen(() => {
       localStorage.removeItem("algorithmResults")
       localStorage.removeItem("nationsSubmitted")
@@ -191,7 +192,7 @@ function RunAlgorithm() {
       setAlgorithmResults(localAlgorithmResults)
       setIsLoading(false);
     }
-  }, [quota, species])
+  }, [quota, species, license])
 
   const getTotalGrantColumn = (nation, updatedValues, requestedAmount, index) => {
     if (Object.keys(JSON.parse(localStorage.getItem("results"))).length > 0) {
