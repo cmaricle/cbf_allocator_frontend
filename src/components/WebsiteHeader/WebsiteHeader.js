@@ -28,10 +28,11 @@ import {
 import { useAuth } from "../../AuthContext"
 import { HamburgerIcon } from "@chakra-ui/icons";
 
-const WebsiteHeader  = ({hidden=false}) => {
+const WebsiteHeader  = ({hidden=false, homePage=false}) => {
   const location = useLocation();
 
   const { logout, authenticated } = useAuth()
+  const [isHidden, setIsHidden] = useState(hidden)
   const { isOpen, onOpen, onClose } = useDisclosure()
   const [scrollY, setScrollY] = useState(0);
   const [backgroundColor, setBackgroundColor] = useState('transparent');
@@ -40,10 +41,14 @@ const WebsiteHeader  = ({hidden=false}) => {
   useEffect(() => {
     const handleScroll = () => {
       setScrollY(window.scrollY);
-      if (window.scrollY > 15) {
+      if (window.scrollY > 15 && homePage) {
         setBackgroundColor("white");
         setFontColor("green.800")
-      } else {
+      } else if (window.scrollY > 15 && !homePage) {
+        setIsHidden(true)
+      } else if (window.scrollY < 15 && !homePage ) {
+        setIsHidden(false)
+      }  else if (homePage) {
         setBackgroundColor('transparent');
         setFontColor("white")
       }
@@ -74,29 +79,9 @@ const WebsiteHeader  = ({hidden=false}) => {
       width="100%"
       bg={backgroundColor}
       color={fontColor}
-      hidden={hidden}
+      hidden={isHidden}
     >
       <Flex minWidth='max-content' alignItems='center' gap='1'>
-        {/* <IconButton 
-          onClick={onOpen} 
-          background="transparent" 
-          color={fontColor}
-          icon={<HamburgerIcon/>}></IconButton>
-        <Drawer 
-          onClose={onClose} 
-          isOpen={isOpen}
-          placement="left"
-        >
-          <DrawerOverlay />
-          <DrawerContent>
-            <DrawerHeader borderBottomWidth='1px'>Basic Drawer</DrawerHeader>
-            <DrawerBody>
-              <p>Some contents...</p>
-              <p>Some contents...</p>
-              <p>Some contents...</p>
-            </DrawerBody>
-          </DrawerContent>
-        </Drawer> */}
       <Center>
       <Box>
         <Heading size='md'>DISTRIBUTION MANAGEMENT</Heading>

@@ -118,6 +118,7 @@ const ParallaxHeroSection = ({speciesList, nationList, image, description, headi
       behavior: "smooth"
     });
     const handleScroll = () => {
+      setHidden(false)
       const scrollY = window.scrollY || window.pageYOffset;
       const windowHeight = window.innerHeight;
       const documentHeight = document.documentElement.scrollHeight;
@@ -144,7 +145,7 @@ const ParallaxHeroSection = ({speciesList, nationList, image, description, headi
       flexDirection="column"
       // justifyContent="center"
     >
-      <WebsiteHeader hidden={percent > 80}></WebsiteHeader>
+      <WebsiteHeader hidden={percent > 80} homePage={true}></WebsiteHeader>
       <Box flex="1"></Box> {/* This will create space for the header */}
       <Grid templateColumns='repeat(5, 1fr)'>
         <GridItem colSpan={1}>
