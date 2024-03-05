@@ -112,6 +112,11 @@ const ParallaxHeroSection = ({speciesList, nationList, image, description, headi
   }, []);
 
   useEffect(() => {
+    setHidden(true)
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
     const handleScroll = () => {
       const scrollY = window.scrollY || window.pageYOffset;
       const windowHeight = window.innerHeight;
@@ -123,6 +128,7 @@ const ParallaxHeroSection = ({speciesList, nationList, image, description, headi
     window.addEventListener('scroll', handleScroll);
     return () => {
       window.removeEventListener('scroll', handleScroll);
+      setHidden(true)
     };
   }, []);
 
@@ -188,7 +194,7 @@ const ParallaxHeroSection = ({speciesList, nationList, image, description, headi
       </Box>
     </Box>
     {
-      percent > 0 ?
+      percent > 0 && !hidden ?
       (<Box height={"100vh"} >
         <Slide direction='left' in={percent> 80} style={{ zIndex: 10 }}>
         <Grid templateColumns={!isMobile ? "repeat(6, 1fr)" : "repeat(8, 1fr)"}  templateRows={!isMobile ? "repeat(16, 1fr)" : "repeat(4, 1fr)"}>
