@@ -17,15 +17,19 @@ import { Box, ChakraProvider, Container, Heading, SimpleGrid, TableContainer,
   StatLabel,
   StatNumber,
   Spacer,
+  Stack,
+  Radio,
   StatHelpText,
   Card,
-  Tooltip, } from "@chakra-ui/react";
+  Tooltip,
+  RadioGroup, } from "@chakra-ui/react";
 
 
 import * as api from "../../modules/api"
 import theme from "../../theme";
 import ApiSelect from "../../components/Select/Select";
 import WebsiteHeader from "../../components/WebsiteHeader/WebsiteHeader";
+import RunAlgorithmChart from "../../components/BarChart/BarChart";
 
 
 class NationPage extends Component {
@@ -34,6 +38,7 @@ class NationPage extends Component {
     this.state = {
       nationsList: [],
       requests: {},
+      requestChartData: [],
       backendHealth: true, 
       headers: ["species", "requested_quota", "allocated_quota", "requested_license", "allocated_license"],
       year: 2024,
@@ -42,6 +47,7 @@ class NationPage extends Component {
       variablesLoading: false,
       grantsLoading: false,
       nationVariables: {},
+      requestChartDisplayType: "quota",
       grants: {},
     }
   }
@@ -85,9 +91,35 @@ class NationPage extends Component {
   }
 
   componentWillUnmount() {
+    console.log(this.state.grants)
     localStorage.removeItem("requests")
     localStorage.removeItem("grants")
     localStorage.removeItem("nationVariables")
+  }
+  
+  transformObjectToArray(inputObject) {
+    const resultArray = [];
+    for (let speciesName in inputObject) {
+      if (inputObject.hasOwnProperty(speciesName)) {
+        const speciesData = inputObject[speciesName];
+        
+        for (let nationName in speciesData) {
+          if (speciesData.hasOwnProperty(nationName)) {
+            const nationData = speciesData[nationName];
+            
+            resultArray.push({
+              name: speciesName,
+              requested_quota: nationData.requested_quota,
+              requested_license: nationData.requested_license,
+              allocated_quota: "allocated_quota" in nationData ? nationData.allocated_quota : 0,
+              allocated_license: "allocated_license" in nationData ? nationData.allocated_license : 0,
+              nation_name: nationName
+            });
+          }
+        }
+      }
+    }
+    return resultArray;
   }
   
   
@@ -113,8 +145,11 @@ class NationPage extends Component {
         this.setState({requestsLoading: false})
         this.setState({ requests: updatedRequests }, () => {
           localStorage.setItem("requests", JSON.stringify(this.state.requests));
+          this.setState({requestChartData: this.transformObjectToArray(this.state.requests)})
         });
       });
+    } else {
+      this.setState({requestChartData: this.transformObjectToArray(this.state.requests)})
     }
   }
 
@@ -221,8 +256,18 @@ class NationPage extends Component {
               <Center><Heading variant="solid">Requests</Heading></Center>
             </Box>
             <Divider/>
+            <Center><RadioGroup hidden={this.state.requestsLoading} defaultValue="quota" onChange={(e) => { this.setState({requestChartDisplayType: e}); console.log(e) }}> 
+              <Stack spacing={4} direction='row'><Radio value="quota">Quota</Radio><Radio value="license">License</Radio></Stack>
+              </RadioGroup></Center>
+            { this.state.requestChartData ? 
+            <Box hidden={this.state.requestsLoading}>
+              <RunAlgorithmChart aspectRatio={5} barOneDataKey={`requested_${this.state.requestChartDisplayType}`} barTwoDataKey={`allocated_${this.state.requestChartDisplayType}`} data={
+              this.state.requestChartData.filter(item => item["nation_name"] === this.state.nationName)}
+              ></RunAlgorithmChart></Box> : <></>
+            }
             { this.state.requestsLoading ? <Progress isIndeterminate size="xs" variant="basic"></Progress> : 
             this.state.requests && !this.isNationInRequests() ? (<Alert status="warning"><AlertIcon/>{"No Requests"}</Alert>) :
+            <>
             <TableContainer>
               <Table>
                 <Thead>
@@ -265,6 +310,7 @@ class NationPage extends Component {
                 </Tbody>
               </Table>
             </TableContainer>
+            </>
               }
           </Box>
   
@@ -300,8 +346,8 @@ class NationPage extends Component {
                         <Stat>
                           <StatLabel>{species}</StatLabel>
                           <StatNumber>{
-                            "granted_quota" in grant ? "quota: " + this.formatStat(this.formatNumber(grant["granted_quota"])) : ""}
-                            { "granted_license" in grant ? this.formatNumber(grant["granted_license"]) : ""}
+                            "granted_quota" in grant && grant["granted_quota"] !== 0 ? "quota: " + this.formatStat(this.formatNumber(grant["granted_quota"])) : ""}
+                            { "granted_license" in grant && grant["granted_license"] !== 0 ? "license: " + this.formatNumber(grant["granted_license"]) : ""}
                             </StatNumber>
                           <StatHelpText>{`$${this.formatNumber(grant["cost"])}`}</StatHelpText>
                         </Stat>
