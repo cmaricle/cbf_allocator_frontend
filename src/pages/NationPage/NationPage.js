@@ -30,6 +30,7 @@ import theme from "../../theme";
 import ApiSelect from "../../components/Select/Select";
 import WebsiteHeader from "../../components/WebsiteHeader/WebsiteHeader";
 import RunAlgorithmChart from "../../components/BarChart/BarChart";
+import { Select } from "chakra-react-select";
 
 
 class NationPage extends Component {
@@ -49,6 +50,9 @@ class NationPage extends Component {
       nationVariables: {},
       requestChartDisplayType: "quota",
       grants: {},
+      species: "*",
+      speciesToShow: [],
+      yearToShowInSelect: [{"value": 2024, "label": 2024}],
     }
   }
 
@@ -91,7 +95,6 @@ class NationPage extends Component {
   }
 
   componentWillUnmount() {
-    console.log(this.state.grants)
     localStorage.removeItem("requests")
     localStorage.removeItem("grants")
     localStorage.removeItem("nationVariables")
@@ -119,6 +122,7 @@ class NationPage extends Component {
         }
       }
     }
+    this.setSpeciesToShowInSelect(resultArray, this.state.nationName)
     return resultArray;
   }
   
@@ -169,10 +173,20 @@ class NationPage extends Component {
     }
   }
 
+  setSpeciesToShowInSelect(result, nationName) {
+    let speciesToShowList = new Set("*")
+    result.forEach(item =>
+      nationName === item["nation_name"] ? speciesToShowList.add(item["name"]) : {}
+    )
+    this.setState({speciesToShow: Array.from(speciesToShowList)})
+  }
+
   setNation = (e) => {
     const nation = e.target.value
     this.getRequests(this.state.year, this.state.speciesList, this.state.requests)
     this.setState({nationName: nation})
+    this.setState({species: "*"})
+    this.setSpeciesToShowInSelect(this.state.requestChartData, e.target.value)
     this.getNationVariables(nation, {})
   }
 
@@ -228,6 +242,15 @@ class NationPage extends Component {
     return val
   }
 
+  handleYearInputVariable = (event) => {
+    const year = event
+    const yearList = []
+    event.forEach(item => [
+        yearList.push(item["value"])
+    ])
+    this.setState({yearToShowInSelect: event})
+  }
+
   render() {
     return (
       <ChakraProvider theme={theme}>
@@ -241,13 +264,18 @@ class NationPage extends Component {
             onSelect={this.setNation}
             >
           </ApiSelect>
-          <ApiSelect 
-            list={[2024, 2025, 2026, 2027, 2028]} 
-            listType="year" 
-            defaultValue={this.state.year}
-            onSelect={this.setYear}  
-          >
-          </ApiSelect>
+          <Select 
+            placeholder={"Select years"} 
+            options={
+            [2024, 2025, 2026, 2027, 2028].map(year => ({
+              value: String(year),
+              label: String(year)
+            }))
+          }
+          isMulti
+          onChange={this.handleYearInputVariable}
+          value={this.state.yearToShowInSelect}
+          ></Select>
         </SimpleGrid>
 
         <SimpleGrid columns={[1]} spacing={8}>
@@ -256,14 +284,32 @@ class NationPage extends Component {
               <Center><Heading variant="solid">Requests</Heading></Center>
             </Box>
             <Divider/>
-            <Center><RadioGroup hidden={this.state.requestsLoading} defaultValue="quota" onChange={(e) => { this.setState({requestChartDisplayType: e}); console.log(e) }}> 
-              <Stack spacing={4} direction='row'><Radio value="quota">Quota</Radio><Radio value="license">License</Radio></Stack>
-              </RadioGroup></Center>
-            { this.state.requestChartData ? 
+            { this.state.requestChartData && this.state.requests && this.isNationInRequests() ? 
+            <>
+            <Center p={2}>
+              <RadioGroup hidden={this.state.requestsLoading} defaultValue="quota" onChange={(e) => { this.setState({requestChartDisplayType: e}); }}> 
+              <Stack spacing={4} direction='row'>
+                <ApiSelect 
+                  list={this.state.speciesToShow} 
+                  listType="species" 
+                  onSelect={(e) => this.setState({species: e.target.value})}
+                  defaultValue={this.state.species}
+                  value={this.state.species}
+                  ></ApiSelect>
+                <Radio value="quota">Quota</Radio>
+                <Radio value="license">License</Radio>
+              </Stack>
+            </RadioGroup></Center>
             <Box hidden={this.state.requestsLoading}>
-              <RunAlgorithmChart aspectRatio={5} barOneDataKey={`requested_${this.state.requestChartDisplayType}`} barTwoDataKey={`allocated_${this.state.requestChartDisplayType}`} data={
-              this.state.requestChartData.filter(item => item["nation_name"] === this.state.nationName)}
-              ></RunAlgorithmChart></Box> : <></>
+              <RunAlgorithmChart 
+                aspectRatio={5} 
+                barOneDataKey={`requested_${this.state.requestChartDisplayType}`} 
+                barTwoDataKey={`allocated_${this.state.requestChartDisplayType}`} 
+                data={
+                this.state.requestChartData.filter(
+                  item => item.nation_name === this.state.nationName && (item.name === this.state.species || this.state.species === "*")
+                )}
+              ></RunAlgorithmChart></Box></> : <></>
             }
             { this.state.requestsLoading ? <Progress isIndeterminate size="xs" variant="basic"></Progress> : 
             this.state.requests && !this.isNationInRequests() ? (<Alert status="warning"><AlertIcon/>{"No Requests"}</Alert>) :
@@ -277,7 +323,7 @@ class NationPage extends Component {
                       return (<Tooltip 
                         placement="top"
                         label={
-                        !header.includes("allocated") ? "" : "Total allocated amount for year, see Grants section for more details"
+                        !header.includes("allocated") ? "" : "Total allocated amount for year, see Allocations section for more details"
                         }>
                         <Th isNumeric={index !== 0}>{header}</Th>
                       </Tooltip>)

@@ -33,7 +33,7 @@ class ApiSelect extends Component {
         placeholder={`Select ${this.props.listType}`} 
         onChange={this.onSelect}
         variant={"basic"}
-        value={this.state.value}
+        value={this.props.value ? this.props.value : this.state.value}
       >
         {
           this.props.list ? 
@@ -54,6 +54,7 @@ ApiSelect.propTypes = {
   onSelect: PropTypes.func.isRequired,
   defaultValue: PropTypes.string,
   hidden: PropTypes.bool,
+  value: PropTypes.any,
 }
 
 export default ApiSelect;
