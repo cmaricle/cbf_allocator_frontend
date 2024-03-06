@@ -38,6 +38,8 @@ class NationPage extends Component {
     super(props);
     this.state = {
       nationsList: [],
+      speciesList: [],
+      yearRequests: [],
       requests: {},
       requestChartData: [],
       backendHealth: true, 
@@ -99,33 +101,51 @@ class NationPage extends Component {
     localStorage.removeItem("grants")
     localStorage.removeItem("nationVariables")
   }
-  
-  transformObjectToArray(inputObject) {
-    const resultArray = [];
-    for (let speciesName in inputObject) {
-      if (inputObject.hasOwnProperty(speciesName)) {
-        const speciesData = inputObject[speciesName];
-        
+
+  addItemToChartObject(item, key, resultArray, multiYear=false) {
+    for (let speciesName in item) {
+      if (item.hasOwnProperty(speciesName)) {
+        const speciesData = item[speciesName];
         for (let nationName in speciesData) {
           if (speciesData.hasOwnProperty(nationName)) {
+            if (multiYear && this.state.species === "*" && this.state.nationName === nationName) {
+              this.setState({species: speciesName})
+            }
             const nationData = speciesData[nationName];
-            
-            resultArray.push({
-              name: speciesName,
+            let resultToPush = {
+              name: multiYear ? key : speciesName,
+              species: speciesName,
               requested_quota: nationData.requested_quota,
               requested_license: nationData.requested_license,
               allocated_quota: "allocated_quota" in nationData ? nationData.allocated_quota : 0,
               allocated_license: "allocated_license" in nationData ? nationData.allocated_license : 0,
               nation_name: nationName
-            });
+            };
+            if (multiYear) {
+              resultToPush["species"] = speciesName
+            }
+            resultArray.push(resultToPush)
           }
         }
       }
     }
-    this.setSpeciesToShowInSelect(resultArray, this.state.nationName)
-    return resultArray;
+    return resultArray
   }
   
+  transformObjectToArray(inputObject) {
+    var resultArray = [];
+    if (Object.keys(inputObject).length > 1) {
+      inputObject.forEach((item, key) => {
+          this.addItemToChartObject(item, key, resultArray, true)        
+      })
+    } else {
+      inputObject = Object.entries(inputObject)[0][1]
+      this.setState({species: "*"})
+      this.addItemToChartObject(inputObject, 0, resultArray, false)
+    }
+    this.setSpeciesToShowInSelect(resultArray, inputObject, this.state.nationName)
+    return resultArray;
+  }
   
   getRequests = (year, species, request) => {
     if (!request || Object.keys(request).length === 0) {
@@ -147,9 +167,12 @@ class NationPage extends Component {
           return acc;
         }, {});
         this.setState({requestsLoading: false})
-        this.setState({ requests: updatedRequests }, () => {
+        let newYearRequest = this.state.yearRequests
+        newYearRequest[year] = updatedRequests
+        this.setState({yearRequests: newYearRequest})
+        this.setState({ yearRequests: newYearRequest }, () => {
           localStorage.setItem("requests", JSON.stringify(this.state.requests));
-          this.setState({requestChartData: this.transformObjectToArray(this.state.requests)})
+          this.setState({requestChartData: this.transformObjectToArray(this.state.yearRequests)})
         });
       });
     } else {
@@ -173,10 +196,13 @@ class NationPage extends Component {
     }
   }
 
-  setSpeciesToShowInSelect(result, nationName) {
-    let speciesToShowList = new Set("*")
+  setSpeciesToShowInSelect(result, yearToShowInSelect, nationName) {
+    let speciesToShowList = new Set()
+    if (typeof(yearToShowInSelect) !== Array) {
+      speciesToShowList.add("*")
+    }
     result.forEach(item =>
-      nationName === item["nation_name"] ? speciesToShowList.add(item["name"]) : {}
+      nationName === item["nation_name"] ? speciesToShowList.add("species" in item ? item["species"] : item["name"]) : {}
     )
     this.setState({speciesToShow: Array.from(speciesToShowList)})
   }
@@ -243,12 +269,21 @@ class NationPage extends Component {
   }
 
   handleYearInputVariable = (event) => {
-    const year = event
-    const yearList = []
-    event.forEach(item => [
-        yearList.push(item["value"])
-    ])
+    console.log(this.state.yearRequests)
+    let newYear = event.filter(x => !this.state.yearToShowInSelect.includes(x))
     this.setState({yearToShowInSelect: event})
+    console.log(newYear)
+    if (newYear.length > 0) {
+      this.getRequests(newYear[0]["value"], this.state.speciesList, {})
+    } else {
+      let difference = this.state.yearToShowInSelect.filter(x => !event.includes(x))
+      let updatedYearRequests = this.state.yearRequests
+      delete updatedYearRequests[difference[0]["value"]]
+      console.log(updatedYearRequests)
+      this.setState({yearToShowInSelect: event})
+      this.setState({yearRequests: updatedYearRequests})
+      this.setState({requestChartData: this.transformObjectToArray(updatedYearRequests)})
+    }
   }
 
   render() {
@@ -268,8 +303,8 @@ class NationPage extends Component {
             placeholder={"Select years"} 
             options={
             [2024, 2025, 2026, 2027, 2028].map(year => ({
-              value: String(year),
-              label: String(year)
+              value: year,
+              label: year
             }))
           }
           isMulti
@@ -284,7 +319,7 @@ class NationPage extends Component {
               <Center><Heading variant="solid">Requests</Heading></Center>
             </Box>
             <Divider/>
-            { this.state.requestChartData && this.state.requests && this.isNationInRequests() ? 
+            { this.state.requestChartData && this.state.yearRequests ? 
             <>
             <Center p={2}>
               <RadioGroup hidden={this.state.requestsLoading} defaultValue="quota" onChange={(e) => { this.setState({requestChartDisplayType: e}); }}> 
@@ -307,12 +342,12 @@ class NationPage extends Component {
                 barTwoDataKey={`allocated_${this.state.requestChartDisplayType}`} 
                 data={
                 this.state.requestChartData.filter(
-                  item => item.nation_name === this.state.nationName && (item.name === this.state.species || this.state.species === "*")
+                  item => item.nation_name === this.state.nationName && (this.state.species === "*" || item.species === this.state.species)
                 )}
               ></RunAlgorithmChart></Box></> : <></>
             }
             { this.state.requestsLoading ? <Progress isIndeterminate size="xs" variant="basic"></Progress> : 
-            this.state.requests && !this.isNationInRequests() ? (<Alert status="warning"><AlertIcon/>{"No Requests"}</Alert>) :
+            !this.state.yearRequests ? (<Alert status="warning"><AlertIcon/>{"No Requests"}</Alert>) :
             <>
             <TableContainer>
               <Table>
@@ -334,14 +369,16 @@ class NationPage extends Component {
                 </Thead>
                 <Tbody>
                   {
-                    this.state.requests && Object.keys(this.state.requests).length > 0 ?
-                    Object.entries(this.state.requests).map(([species, requests]) => (
-                      requests && Object.keys(requests).length > 0 ?
-                        Object.entries(requests).filter(([k, v]) => k === this.state.nationName).map(([key, value], index) => (
+                    Object.entries(this.state.yearRequests).map(([key, item]) => (
+                      Object.entries(item).map(([species, requests]) => (
+                        requests && (this.state.species === "*" || species === this.state.species) ?
+                        Object.entries(requests).filter(
+                          ([k, v]) => k === this.state.nationName
+                          ).map(([key, value], index) => (
                           <Tr>
                             <Td>{species}</Td>
                           { this.state.headers.map((header, index) => (
-                            index > 0 ?
+                            index > 0 ? 
                             <React.Fragment key={header}>
                               <Td isNumeric>{header in value ? value[header] : 0}</Td>
                             </React.Fragment>
@@ -350,14 +387,14 @@ class NationPage extends Component {
                           }
                           </Tr>
                     )) : <></>
-                    ))                  
-                    : <></>
-                  }
+                      ))))
+                    } 
+                  
                 </Tbody>
               </Table>
             </TableContainer>
             </>
-              }
+            }
           </Box>
   
           <Box p={6} boxShadow="xl" borderRadius="md" bg="white">
