@@ -173,6 +173,8 @@ function RunAlgorithm() {
   }, []);
   
   const alertUser = (e) => {
+    console.log(updatedValues)
+    console.log(nationSubmitted)
     if (Object.keys(updatedValues).length !== 0 || Object.keys(nationsSubmitted).length !== 0) {
       e.preventDefault();
     }
@@ -500,14 +502,14 @@ function RunAlgorithm() {
                 quota > 0 && algorithmResults["quota"] === quota && algorithmResults["species"] === species ?
                 <GridItem>
                   <Center><Heading as="i" size="md">Quota Distribution</Heading></Center>
-                  <RunAlgorithmChart aspectRatio={getAspectRatio()} type="quota" data={transformObject(response, "quota")}/>
+                  <RunAlgorithmChart barOneDataKey="requested_quota" barTwoDataKey="granted_quota" aspectRatio={getAspectRatio()} data={transformObject(response, "quota")}/>
                 </GridItem> : <></> 
               }
               {
                 license > 0 && localStorage.getItem("results").includes("license") ?
                 <GridItem>
                 <Center><Heading as="i" size="md">License Distribution</Heading></Center>
-                <RunAlgorithmChart aspectRatio={getAspectRatio()} type="license" data={transformObject(response, "license")}></RunAlgorithmChart>
+                <RunAlgorithmChart barOneDataKey="requested_license" barTwoDataKey="granted_license" aspectRatio={getAspectRatio()} data={transformObject(response, "license")}></RunAlgorithmChart>
                 </GridItem> : <></>
               }
               </>
@@ -521,7 +523,7 @@ function RunAlgorithm() {
             <TableCaption>
               <Grid templateColumns={"repeat(6, 1fr)"}>
                 <GridItem/>
-                <GridItem colSpan={2}>
+              <GridItem colSpan={2}>
                   <Text>{`Total available ${species} quota: ${quota} license: ${license}`}</Text>
                 </GridItem>
                 <GridItem><Center><Divider orientation="vertical"/></Center></GridItem>

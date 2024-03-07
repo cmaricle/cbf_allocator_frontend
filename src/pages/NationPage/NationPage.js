@@ -17,15 +17,20 @@ import { Box, ChakraProvider, Container, Heading, SimpleGrid, TableContainer,
   StatLabel,
   StatNumber,
   Spacer,
+  Stack,
+  Radio,
   StatHelpText,
   Card,
-  Tooltip, } from "@chakra-ui/react";
+  Tooltip,
+  RadioGroup, } from "@chakra-ui/react";
 
 
 import * as api from "../../modules/api"
 import theme from "../../theme";
 import ApiSelect from "../../components/Select/Select";
 import WebsiteHeader from "../../components/WebsiteHeader/WebsiteHeader";
+import RunAlgorithmChart from "../../components/BarChart/BarChart";
+import { Select } from "chakra-react-select";
 
 
 class NationPage extends Component {
@@ -33,7 +38,10 @@ class NationPage extends Component {
     super(props);
     this.state = {
       nationsList: [],
+      speciesList: [],
+      yearRequests: [],
       requests: {},
+      requestChartData: [],
       backendHealth: true, 
       headers: ["species", "requested_quota", "allocated_quota", "requested_license", "allocated_license"],
       year: 2024,
@@ -42,7 +50,11 @@ class NationPage extends Component {
       variablesLoading: false,
       grantsLoading: false,
       nationVariables: {},
+      requestChartDisplayType: "quota",
       grants: {},
+      species: "*",
+      speciesToShow: [],
+      yearToShowInSelect: [{"value": 2024, "label": 2024}],
     }
   }
 
@@ -89,7 +101,53 @@ class NationPage extends Component {
     localStorage.removeItem("grants")
     localStorage.removeItem("nationVariables")
   }
+
+  addItemToChartObject(item, year, resultArray, multiYear=false) {
+    for (let speciesName in item) {
+      if (item.hasOwnProperty(speciesName)) {
+        const speciesData = item[speciesName];
+        for (let nationName in speciesData) {
+          if (speciesData.hasOwnProperty(nationName)) {
+            if (multiYear && this.state.species === "*" && this.state.nationName === nationName) {
+              this.setState({species: speciesName})
+            }
+            const nationData = speciesData[nationName];
+            let resultToPush = {
+              name: multiYear ? year : speciesName,
+              requested_quota: nationData.requested_quota,
+              requested_license: nationData.requested_license,
+              allocated_quota: "allocated_quota" in nationData ? nationData.allocated_quota : 0,
+              allocated_license: "allocated_license" in nationData ? nationData.allocated_license : 0,
+              nation_name: nationName
+            };
+            if (multiYear) {
+              resultToPush["species"] = speciesName
+            }
+            resultArray.push(resultToPush)
+          }
+        }
+      }
+    }
+    return resultArray
+  }
   
+  transformObjectToArray(inputObject, updateSpecies=true) {
+    var resultArray = [];
+    if (Object.keys(inputObject).length > 1) {
+      inputObject.forEach((item, key) => {
+        let year = this.state.yearToShowInSelect[key]["value"] 
+        this.addItemToChartObject(item, year, resultArray, true)        
+      })
+    } else {
+      inputObject = Object.entries(inputObject)[0][1]
+      this.setState({species: "*"})
+      this.addItemToChartObject(inputObject, 0, resultArray, false)
+    }
+    if (updateSpecies) {
+      this.setSpeciesToShowInSelect(resultArray, this.state.yearToShowInSelect, this.state.nationName)
+    }
+    return resultArray;
+  }
   
   getRequests = (year, species, request) => {
     if (!request || Object.keys(request).length === 0) {
@@ -98,8 +156,6 @@ class NationPage extends Component {
         return api.getYearRequestForSpecies(value, year).then(response => {
           if ("body" in response && response.statusCode === 200) {
             return JSON.stringify(response["body"]);
-          } else {
-            return null;
           }
         });
       });
@@ -111,10 +167,13 @@ class NationPage extends Component {
           return acc;
         }, {});
         this.setState({requestsLoading: false})
-        this.setState({ requests: updatedRequests }, () => {
+        this.setState({ yearRequests: [ ...this.state.yearRequests, updatedRequests] }, () => {
           localStorage.setItem("requests", JSON.stringify(this.state.requests));
+          this.setState({requestChartData: this.transformObjectToArray(this.state.yearRequests)})
         });
       });
+    } else {
+      this.setState({requestChartData: this.transformObjectToArray(this.state.yearRequests)})
     }
   }
 
@@ -134,9 +193,28 @@ class NationPage extends Component {
     }
   }
 
+  setSpeciesToShowInSelect(result, yearToShowInSelect, nationName) {
+    let speciesToShowList = new Set()
+    console.log(yearToShowInSelect)
+    if (yearToShowInSelect.length === 1) {
+      speciesToShowList.add("*")
+      this.setState({species: "*"})
+    }
+    result.forEach(item =>
+      nationName === item["nation_name"] ? speciesToShowList.add("species" in item ? item["species"] : item["name"]) : {}
+    )
+    if (nationName !== this.state.nationName && this.state.yearRequests.length > 1) {
+      this.setState({species: [...speciesToShowList][0]})
+    }
+    this.setState({speciesToShow: Array.from(speciesToShowList)})
+  }
+
   setNation = (e) => {
     const nation = e.target.value
-    this.getRequests(this.state.year, this.state.speciesList, this.state.requests)
+    if (!this.state.yearRequests) {
+      this.getRequests(this.state.year, this.state.speciesList, this.state.requests)
+    }
+    this.setSpeciesToShowInSelect(this.state.requestChartData, this.state.yearToShowInSelect, e.target.value)
     this.setState({nationName: nation})
     this.getNationVariables(nation, {})
   }
@@ -193,6 +271,27 @@ class NationPage extends Component {
     return val
   }
 
+  handleYearInputVariable = (event) => {
+    console.log(event)
+    if (event.length > 0) {
+      let newYear = event.filter(x => !this.state.yearToShowInSelect.includes(x))
+      this.setState({yearToShowInSelect: event})
+      if (newYear.length > 0) {
+        this.getRequests(newYear[0]["value"], this.state.speciesList, {})
+      } else {
+          let difference = this.state.yearToShowInSelect.filter(x => !event.includes(x))
+          let indexOfDeleted = this.state.yearToShowInSelect.indexOf(difference[0])
+          let updatedYearRequests = this.state.yearRequests
+          updatedYearRequests.splice(indexOfDeleted, 1)
+          
+          this.setSpeciesToShowInSelect(updatedYearRequests, event, this.state.nationName)
+          this.setState({yearToShowInSelect: event})
+          this.setState({yearRequests: updatedYearRequests})
+          this.setState({requestChartData: this.transformObjectToArray(updatedYearRequests, false)})  
+        }
+    }
+  }
+
   render() {
     return (
       <ChakraProvider theme={theme}>
@@ -206,13 +305,18 @@ class NationPage extends Component {
             onSelect={this.setNation}
             >
           </ApiSelect>
-          <ApiSelect 
-            list={[2024, 2025, 2026, 2027, 2028]} 
-            listType="year" 
-            defaultValue={this.state.year}
-            onSelect={this.setYear}  
-          >
-          </ApiSelect>
+          <Select 
+            placeholder={"Select years"} 
+            options={
+            [2024, 2025, 2026, 2027, 2028].map(year => ({
+              value: year,
+              label: year
+            }))
+          }
+          isMulti
+          onChange={this.handleYearInputVariable}
+          value={this.state.yearToShowInSelect}
+          ></Select>
         </SimpleGrid>
 
         <SimpleGrid columns={[1]} spacing={8}>
@@ -221,8 +325,36 @@ class NationPage extends Component {
               <Center><Heading variant="solid">Requests</Heading></Center>
             </Box>
             <Divider/>
+            { this.state.requestChartData && this.state.yearRequests ? 
+            <>
+            <Center p={2}>
+              <RadioGroup hidden={this.state.requestsLoading} defaultValue="quota" onChange={(e) => { this.setState({requestChartDisplayType: e}); }}> 
+              <Stack spacing={4} direction='row'>
+                <ApiSelect 
+                  list={this.state.speciesToShow} 
+                  listType="species" 
+                  onSelect={(e) => this.setState({species: e.target.value})}
+                  defaultValue={this.state.species}
+                  value={this.state.species}
+                  ></ApiSelect>
+                <Radio variant="basic" value="quota">Quota</Radio>
+                <Radio variant="basic" value="license">License</Radio>
+              </Stack>
+            </RadioGroup></Center>
+            <Box hidden={this.state.requestsLoading}>
+              <RunAlgorithmChart 
+                aspectRatio={5} 
+                barOneDataKey={`requested_${this.state.requestChartDisplayType}`} 
+                barTwoDataKey={`allocated_${this.state.requestChartDisplayType}`} 
+                data={
+                this.state.requestChartData.filter(
+                  item => item.nation_name === this.state.nationName && (this.state.species === "*" || item.species === this.state.species)
+                )}
+              ></RunAlgorithmChart></Box></> : <></>
+            }
             { this.state.requestsLoading ? <Progress isIndeterminate size="xs" variant="basic"></Progress> : 
-            this.state.requests && !this.isNationInRequests() ? (<Alert status="warning"><AlertIcon/>{"No Requests"}</Alert>) :
+            !this.state.yearRequests ? (<Alert status="warning"><AlertIcon/>{"No Requests"}</Alert>) :
+            <>
             <TableContainer>
               <Table>
                 <Thead>
@@ -232,7 +364,7 @@ class NationPage extends Component {
                       return (<Tooltip 
                         placement="top"
                         label={
-                        !header.includes("allocated") ? "" : "Total allocated amount for year, see Grants section for more details"
+                        !header.includes("allocated") ? "" : "Total allocated amount for year, see Allocations section for more details"
                         }>
                         <Th isNumeric={index !== 0}>{header}</Th>
                       </Tooltip>)
@@ -243,14 +375,16 @@ class NationPage extends Component {
                 </Thead>
                 <Tbody>
                   {
-                    this.state.requests && Object.keys(this.state.requests).length > 0 ?
-                    Object.entries(this.state.requests).map(([species, requests]) => (
-                      requests && Object.keys(requests).length > 0 ?
-                        Object.entries(requests).filter(([k, v]) => k === this.state.nationName).map(([key, value], index) => (
+                    Object.entries(this.state.yearRequests).map(([key, item]) => (
+                      Object.entries(item).map(([species, requests]) => (
+                        requests && (this.state.species === "*" || species === this.state.species) ?
+                        Object.entries(requests).filter(
+                          ([k, v]) => k === this.state.nationName
+                          ).map(([key, value], index) => (
                           <Tr>
                             <Td>{species}</Td>
                           { this.state.headers.map((header, index) => (
-                            index > 0 ?
+                            index > 0 ? 
                             <React.Fragment key={header}>
                               <Td isNumeric>{header in value ? value[header] : 0}</Td>
                             </React.Fragment>
@@ -259,13 +393,14 @@ class NationPage extends Component {
                           }
                           </Tr>
                     )) : <></>
-                    ))                  
-                    : <></>
-                  }
+                      ))))
+                    } 
+                  
                 </Tbody>
               </Table>
             </TableContainer>
-              }
+            </>
+            }
           </Box>
   
           <Box p={6} boxShadow="xl" borderRadius="md" bg="white">
@@ -300,8 +435,8 @@ class NationPage extends Component {
                         <Stat>
                           <StatLabel>{species}</StatLabel>
                           <StatNumber>{
-                            "granted_quota" in grant ? "quota: " + this.formatStat(this.formatNumber(grant["granted_quota"])) : ""}
-                            { "granted_license" in grant ? this.formatNumber(grant["granted_license"]) : ""}
+                            "granted_quota" in grant && grant["granted_quota"] !== 0 ? "quota: " + this.formatStat(this.formatNumber(grant["granted_quota"])) : ""}
+                            { "granted_license" in grant && grant["granted_license"] !== 0 ? "license: " + this.formatNumber(grant["granted_license"]) : ""}
                             </StatNumber>
                           <StatHelpText>{`$${this.formatNumber(grant["cost"])}`}</StatHelpText>
                         </Stat>

@@ -2,7 +2,6 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 
 import { BarChart, Bar, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { Flex } from '@chakra-ui/react'
 
 
 class RunAlgorithmChart extends PureComponent {  
@@ -25,11 +24,17 @@ class RunAlgorithmChart extends PureComponent {
         >
           {/* <CartesianGrid strokeDasharray="3 3" /> */}
           <XAxis dataKey="name" />
-          <YAxis />
+          <YAxis allowDecimals={false}/>
           <Tooltip />
           <Legend />
-          <Bar dataKey={`requested_${this.props.type}`} fill="#31473A" />
-          <Bar dataKey={`granted_${this.props.type}`} fill="#C4BA84" />
+          <Bar dataKey={this.props.barOneDataKey} fill="#31473A" />
+          <Bar dataKey={this.props.barTwoDataKey} fill="#C4BA84" />
+          {
+            this.props.barThreeDataKey ? <Bar dataKey={this.props.barThreeDataKey} fill="#31473A" /> : <></>
+          }
+          {
+            this.props.barFourDataKey ? <Bar dataKey={this.props.barFourDataKey} fill="#C4BA84" /> : <></>
+          }
         </BarChart>
         </ResponsiveContainer>
     );
@@ -38,8 +43,11 @@ class RunAlgorithmChart extends PureComponent {
 
 RunAlgorithmChart.propTypes = {
   data: PropTypes.object.isRequired,
-  type: PropTypes.string.isRequired,
   aspectRatio: PropTypes.number.isRequired,
+  barOneDataKey: PropTypes.string.isRequired,
+  barTwoDataKey: PropTypes.string.isRequired,
+  barThreeDataKey: PropTypes.string.isRequired,
+  barFourDataKey: PropTypes.string.isRequired,
 }
 
 export default RunAlgorithmChart
