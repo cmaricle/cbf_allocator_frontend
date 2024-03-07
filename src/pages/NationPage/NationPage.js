@@ -134,9 +134,9 @@ class NationPage extends Component {
   transformObjectToArray(inputObject, updateSpecies=true) {
     var resultArray = [];
     if (Object.keys(inputObject).length > 1) {
-      inputObject.forEach((item, key) => {
-        let year = this.state.yearToShowInSelect[key]["value"] 
-        this.addItemToChartObject(item, year, resultArray, true)        
+      Object.entries(inputObject).map((item, key) => {
+        this.addItemToChartObject(item[1], item[0], resultArray, true)
+            
       })
     } else {
       inputObject = Object.entries(inputObject)[0][1]
@@ -167,7 +167,7 @@ class NationPage extends Component {
           return acc;
         }, {});
         this.setState({requestsLoading: false})
-        this.setState({ yearRequests: [ ...this.state.yearRequests, updatedRequests] }, () => {
+        this.setState({ yearRequests: { ...this.state.yearRequests, [year]: updatedRequests} }, () => {
           localStorage.setItem("requests", JSON.stringify(this.state.requests));
           this.setState({requestChartData: this.transformObjectToArray(this.state.yearRequests)})
         });
@@ -195,12 +195,11 @@ class NationPage extends Component {
 
   setSpeciesToShowInSelect(result, yearToShowInSelect, nationName) {
     let speciesToShowList = new Set()
-    console.log(yearToShowInSelect)
     if (yearToShowInSelect.length === 1) {
       speciesToShowList.add("*")
       this.setState({species: "*"})
     }
-    result.forEach(item =>
+    Object.values(result).forEach(item =>
       nationName === item["nation_name"] ? speciesToShowList.add("species" in item ? item["species"] : item["name"]) : {}
     )
     if (nationName !== this.state.nationName && this.state.yearRequests.length > 1) {
@@ -272,24 +271,23 @@ class NationPage extends Component {
   }
 
   handleYearInputVariable = (event) => {
-    console.log(event)
     if (event.length > 0) {
+      event.sort((a, b) => a.value - b.value)
       let newYear = event.filter(x => !this.state.yearToShowInSelect.includes(x))
-      this.setState({yearToShowInSelect: event})
       if (newYear.length > 0) {
+        this.setState({yearToShowInSelect: event})
         this.getRequests(newYear[0]["value"], this.state.speciesList, {})
       } else {
           let difference = this.state.yearToShowInSelect.filter(x => !event.includes(x))
-          let indexOfDeleted = this.state.yearToShowInSelect.indexOf(difference[0])
           let updatedYearRequests = this.state.yearRequests
-          updatedYearRequests.splice(indexOfDeleted, 1)
-          
+          delete updatedYearRequests[difference[0]["value"]]
           this.setSpeciesToShowInSelect(updatedYearRequests, event, this.state.nationName)
           this.setState({yearToShowInSelect: event})
           this.setState({yearRequests: updatedYearRequests})
           this.setState({requestChartData: this.transformObjectToArray(updatedYearRequests, false)})  
         }
     }
+     
   }
 
   render() {
@@ -377,7 +375,7 @@ class NationPage extends Component {
                   {
                     Object.entries(this.state.yearRequests).map(([key, item]) => (
                       Object.entries(item).map(([species, requests]) => (
-                        requests && (this.state.species === "*" || species === this.state.species) ?
+                        requests  ?
                         Object.entries(requests).filter(
                           ([k, v]) => k === this.state.nationName
                           ).map(([key, value], index) => (
