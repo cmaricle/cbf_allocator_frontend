@@ -337,8 +337,8 @@ class NationPage extends Component {
                   defaultValue={this.state.species}
                   value={this.state.species}
                   ></ApiSelect>
-                <Radio value="quota">Quota</Radio>
-                <Radio value="license">License</Radio>
+                <Radio variant="basic" value="quota">Quota</Radio>
+                <Radio variant="basic" value="license">License</Radio>
               </Stack>
             </RadioGroup></Center>
             <Box hidden={this.state.requestsLoading}>

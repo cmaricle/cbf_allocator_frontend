@@ -112,7 +112,7 @@ function Form({buttonName, speciesList, link=false}) {
                   <Center>
                     <Stack direction="row">
                       {["2024", "2025", "2026", "2027", "2028"].map(year => (
-                        <Radio key={year} value={year}>{year}</Radio>
+                        <Radio variant="basic" key={year} value={year}>{year}</Radio>
                       ))}
                     </Stack>
                   </Center>

@@ -523,7 +523,7 @@ function RunAlgorithm() {
             <TableCaption>
               <Grid templateColumns={"repeat(6, 1fr)"}>
                 <GridItem/>
-                <GridItem colSpan={2}>
+              <GridItem colSpan={2}>
                   <Text>{`Total available ${species} quota: ${quota} license: ${license}`}</Text>
                 </GridItem>
                 <GridItem><Center><Divider orientation="vertical"/></Center></GridItem>

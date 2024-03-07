@@ -1,4 +1,4 @@
-import { extendTheme } from '@chakra-ui/react'
+import { color, extendTheme } from '@chakra-ui/react'
 
 const colors = {
   main: "green.800"
@@ -39,6 +39,18 @@ export const theme = extendTheme({
         size: "lg"
       }
 
+    },
+    Radio: {
+      variants: {
+        basic: {
+          control: {
+            _checked: {
+              bg: colors.main,
+              borderColor: colors.main,
+            }
+          }
+        }
+      }
     },
     Select: {
       variants: {
