@@ -114,6 +114,7 @@ class NationPage extends Component {
             const nationData = speciesData[nationName];
             let resultToPush = {
               name: multiYear ? year : speciesName,
+              species: speciesName,
               requested_quota: nationData.requested_quota,
               requested_license: nationData.requested_license,
               allocated_quota: "allocated_quota" in nationData ? nationData.allocated_quota : 0,
