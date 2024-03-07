@@ -328,7 +328,7 @@ class NationPage extends Component {
             <>
             <Center p={2}>
               <RadioGroup hidden={this.state.requestsLoading} defaultValue="quota" onChange={(e) => { this.setState({requestChartDisplayType: e}); }}> 
-              <Stack spacing={4} direction='row'>
+              <Stack spacing={4} direction='row' hidden={this.state.requestsLoading}>
                 <ApiSelect 
                   list={this.state.speciesToShow} 
                   listType="species" 
@@ -370,11 +370,15 @@ class NationPage extends Component {
                                               
                     })
                   }
+                  {
+                    this.state.yearToShowInSelect.length > 1 ? 
+                    <Th isNumeric>Year</Th> : <></>
+                  }
                 </Tr>
                 </Thead>
                 <Tbody>
                   {
-                    Object.entries(this.state.yearRequests).map(([key, item]) => (
+                    Object.entries(this.state.yearRequests).map(([year, item]) => (
                       Object.entries(item).map(([species, requests]) => (
                         requests  ?
                         Object.entries(requests).filter(
@@ -389,6 +393,9 @@ class NationPage extends Component {
                             </React.Fragment>
                             : <></>
                           ))
+                          } {
+                            this.state.yearToShowInSelect.length > 1 ? 
+                            <Td isNumeric>{year}</Td> : <></>
                           }
                           </Tr>
                     )) : <></>
