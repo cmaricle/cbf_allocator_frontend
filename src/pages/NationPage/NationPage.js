@@ -102,7 +102,7 @@ class NationPage extends Component {
     localStorage.removeItem("nationVariables")
   }
 
-  addItemToChartObject(item, key, resultArray, multiYear=false) {
+  addItemToChartObject(item, year, resultArray, multiYear=false) {
     for (let speciesName in item) {
       if (item.hasOwnProperty(speciesName)) {
         const speciesData = item[speciesName];
@@ -113,8 +113,7 @@ class NationPage extends Component {
             }
             const nationData = speciesData[nationName];
             let resultToPush = {
-              name: multiYear ? key : speciesName,
-              species: speciesName,
+              name: multiYear ? year : speciesName,
               requested_quota: nationData.requested_quota,
               requested_license: nationData.requested_license,
               allocated_quota: "allocated_quota" in nationData ? nationData.allocated_quota : 0,
@@ -132,18 +131,21 @@ class NationPage extends Component {
     return resultArray
   }
   
-  transformObjectToArray(inputObject) {
+  transformObjectToArray(inputObject, updateSpecies=true) {
     var resultArray = [];
     if (Object.keys(inputObject).length > 1) {
       inputObject.forEach((item, key) => {
-          this.addItemToChartObject(item, key, resultArray, true)        
+        let year = this.state.yearToShowInSelect[key]["value"] 
+        this.addItemToChartObject(item, year, resultArray, true)        
       })
     } else {
       inputObject = Object.entries(inputObject)[0][1]
       this.setState({species: "*"})
       this.addItemToChartObject(inputObject, 0, resultArray, false)
     }
-    this.setSpeciesToShowInSelect(resultArray, inputObject, this.state.nationName)
+    if (updateSpecies) {
+      this.setSpeciesToShowInSelect(resultArray, this.state.yearToShowInSelect, this.state.nationName)
+    }
     return resultArray;
   }
   
@@ -154,8 +156,6 @@ class NationPage extends Component {
         return api.getYearRequestForSpecies(value, year).then(response => {
           if ("body" in response && response.statusCode === 200) {
             return JSON.stringify(response["body"]);
-          } else {
-            return null;
           }
         });
       });
@@ -167,16 +167,13 @@ class NationPage extends Component {
           return acc;
         }, {});
         this.setState({requestsLoading: false})
-        let newYearRequest = this.state.yearRequests
-        newYearRequest[year] = updatedRequests
-        this.setState({yearRequests: newYearRequest})
-        this.setState({ yearRequests: newYearRequest }, () => {
+        this.setState({ yearRequests: [ ...this.state.yearRequests, updatedRequests] }, () => {
           localStorage.setItem("requests", JSON.stringify(this.state.requests));
           this.setState({requestChartData: this.transformObjectToArray(this.state.yearRequests)})
         });
       });
     } else {
-      this.setState({requestChartData: this.transformObjectToArray(this.state.requests)})
+      this.setState({requestChartData: this.transformObjectToArray(this.state.yearRequests)})
     }
   }
 
@@ -198,21 +195,27 @@ class NationPage extends Component {
 
   setSpeciesToShowInSelect(result, yearToShowInSelect, nationName) {
     let speciesToShowList = new Set()
-    if (typeof(yearToShowInSelect) !== Array) {
+    console.log(yearToShowInSelect)
+    if (yearToShowInSelect.length === 1) {
       speciesToShowList.add("*")
+      this.setState({species: "*"})
     }
     result.forEach(item =>
       nationName === item["nation_name"] ? speciesToShowList.add("species" in item ? item["species"] : item["name"]) : {}
     )
+    if (nationName !== this.state.nationName && this.state.yearRequests.length > 1) {
+      this.setState({species: [...speciesToShowList][0]})
+    }
     this.setState({speciesToShow: Array.from(speciesToShowList)})
   }
 
   setNation = (e) => {
     const nation = e.target.value
-    this.getRequests(this.state.year, this.state.speciesList, this.state.requests)
+    if (!this.state.yearRequests) {
+      this.getRequests(this.state.year, this.state.speciesList, this.state.requests)
+    }
+    this.setSpeciesToShowInSelect(this.state.requestChartData, this.state.yearToShowInSelect, e.target.value)
     this.setState({nationName: nation})
-    this.setState({species: "*"})
-    this.setSpeciesToShowInSelect(this.state.requestChartData, e.target.value)
     this.getNationVariables(nation, {})
   }
 
@@ -269,20 +272,23 @@ class NationPage extends Component {
   }
 
   handleYearInputVariable = (event) => {
-    console.log(this.state.yearRequests)
-    let newYear = event.filter(x => !this.state.yearToShowInSelect.includes(x))
-    this.setState({yearToShowInSelect: event})
-    console.log(newYear)
-    if (newYear.length > 0) {
-      this.getRequests(newYear[0]["value"], this.state.speciesList, {})
-    } else {
-      let difference = this.state.yearToShowInSelect.filter(x => !event.includes(x))
-      let updatedYearRequests = this.state.yearRequests
-      delete updatedYearRequests[difference[0]["value"]]
-      console.log(updatedYearRequests)
+    console.log(event)
+    if (event.length > 0) {
+      let newYear = event.filter(x => !this.state.yearToShowInSelect.includes(x))
       this.setState({yearToShowInSelect: event})
-      this.setState({yearRequests: updatedYearRequests})
-      this.setState({requestChartData: this.transformObjectToArray(updatedYearRequests)})
+      if (newYear.length > 0) {
+        this.getRequests(newYear[0]["value"], this.state.speciesList, {})
+      } else {
+          let difference = this.state.yearToShowInSelect.filter(x => !event.includes(x))
+          let indexOfDeleted = this.state.yearToShowInSelect.indexOf(difference[0])
+          let updatedYearRequests = this.state.yearRequests
+          updatedYearRequests.splice(indexOfDeleted, 1)
+          
+          this.setSpeciesToShowInSelect(updatedYearRequests, event, this.state.nationName)
+          this.setState({yearToShowInSelect: event})
+          this.setState({yearRequests: updatedYearRequests})
+          this.setState({requestChartData: this.transformObjectToArray(updatedYearRequests, false)})  
+        }
     }
   }
 
