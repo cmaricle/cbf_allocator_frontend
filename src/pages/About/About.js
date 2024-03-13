@@ -36,6 +36,7 @@ import { FiChevronRight, FiChevronDown } from "react-icons/fi";
 import theme from "../../theme";
 import WebsiteHeader from '../../components/WebsiteHeader/WebsiteHeader';
 import RunAlgorithmChart from '../../components/BarChart/BarChart';
+import Footer from '../../components/Footer';
 
 
 const TableOfContents = ({ items }) => {
@@ -147,8 +148,8 @@ const About = () => {
             <Heading size="md" id="goal">Goal</Heading>
             <Divider/>
             <Text>We aim to solve the complicated distribution problem of sharing limited resources.
-            Our goal is to distribute quota and license purchases using a methodology as transparent and fair as possible.
-            Continue reading to read an overview of how our process works.</Text>
+            Our goal is to distribute quota and license purchases using a methodology in a manner that is both transparent and fair.
+            Read on for an overview of our process.</Text>
           </Box>
         </GridItem>
         <GridItem rowSpan={1} p={3}>
@@ -156,7 +157,8 @@ const About = () => {
           <Heading size="md" id="considerations">Considerations</Heading>
             <Divider/>
             <Text>Because quota and licenses can be purchased at any time, we must have an on-demand method to distribute resources.
-            The two main considerations used are nations' yearly requests, and variables.
+            To do this, we've developed a formula (explained further below) that uses multiple
+            considerations when making decisions. The two main considerations used are nations' <b>yearly requests</b>, and <b>variables</b>.
             </Text>
             <Center>
             <UnorderedList p={3}>
@@ -214,7 +216,7 @@ const About = () => {
                     <Tooltip label="Share of total allocated funds" placement="top">
                       <Th isNumeric>Percentage of funds</Th>
                     </Tooltip>
-                    <Tooltip label="Relative funds share between requesting nations (funds percentage / summation of 'percentage of funds' column)" placement="top">
+                    <Tooltip label="Relative funds share between requesting nation" placement="top">
                       <Th isNumeric>Normalized Funds</Th>
                     </Tooltip>
                     <Tooltip label="Has species been historical catched in nation" placement="top">
@@ -257,7 +259,7 @@ const About = () => {
             </Text>
           <Center p={3}>
           <Card p={3} display={"-webkit-box"}>
-            <Text as="i" display="flex" alignItems={"center"}><TbSum/> Normalized Funds + Request proportion + Limited range of species + <Tooltip label={"Value is zero initally, but is a rolling value of allocated amount / requested amount"}>Allocation fufillment ratio</Tooltip> + <Tooltip label={"Value ins zero initially, but will increase by one if a nation got zero allocations from a resulting calculation."}>Previous grant denial</Tooltip></Text>
+            <Text as="i" display="flex" alignItems={"center"}><TbSum/> Normalized Funds + Request proportion + Limited range of species + <Tooltip label={"Value is zero initally, but is a rolling value of allocated amount / requested amount"}>Allocation fufillment ratio</Tooltip> + <Tooltip label={"Value is zero initially, but will increase by one if a nation recieved zero allocations from a resulting calculation."}>Previous grant denial</Tooltip></Text>
           </Card>
           </Center>
           </Box>
@@ -268,7 +270,7 @@ const About = () => {
            </Box> 
             <Center>
             <Card p={3} display={"-webkit-box"}>
-              <Text as="i" display="flex" alignItems={"center"}><TbSum display="inline-block"/> 20 + 150  + 0 + 0 + 0 = 160</Text>
+              <Text as="i" display="flex" alignItems={"center"}><TbSum display="inline-block"/> 20 + 150  + 0 + 0 + 0 = 170</Text>
             </Card>
             </Center>
             <Box p={3}>
@@ -286,12 +288,12 @@ const About = () => {
                     </Thead>
                     <Tbody>
                       <Tr>
-                        <Td>Nation A</Td><Td isNumeric>160</Td>
+                        <Td>Nation A</Td><Td isNumeric>170</Td>
                         </Tr>
                         <Tr>
-                        <Td>Nation B</Td><Td isNumeric>115</Td>
+                        <Td>Nation B</Td><Td isNumeric>110</Td>
                       </Tr>
-                      <Tr><Td>Nation C</Td><Td isNumeric>101</Td></Tr>
+                      <Tr><Td>Nation C</Td><Td isNumeric>100</Td></Tr>
                     </Tbody>
                   </Table>
                 </TableContainer>
@@ -315,12 +317,12 @@ const About = () => {
                     </Thead>
                     <Tbody>
                       <Tr>
-                        <Td>Nation A</Td><Td isNumeric>42.6</Td>
+                        <Td>Nation A</Td><Td isNumeric>44.7</Td>
                         </Tr>
                         <Tr>
-                        <Td>Nation B</Td><Td isNumeric>30.6</Td>
+                        <Td>Nation B</Td><Td isNumeric>28.9</Td>
                       </Tr>
-                      <Tr><Td>Nation C</Td><Td isNumeric>26.7</Td></Tr>
+                      <Tr><Td>Nation C</Td><Td isNumeric>26.3</Td></Tr>
                     </Tbody>
                   </Table>
                 </TableContainer>

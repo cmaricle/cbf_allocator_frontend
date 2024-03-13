@@ -37,49 +37,6 @@ import ProfilePageModal from '../components/ProfilePageModal/ProfilePageModal';
 import theme from "../theme"
 
 
-const ParallaxHeroSection = ({speciesList, image, description, heading}) => {
-  const [scrollY, setScrollY] = useState(0);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrollY(scrollY - window.scrollY);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, []);
-
-  return (
-    <Box
-      bgImage={image}
-      bgSize="cover"
-      h="400px"
-      bgPosition={`center`}
-      color={image ? "white" : "green.800"}
-    >
-      <Container 
-        maxW="container.lg" 
-        p={8} 
-        textAlign={image ? "center": ""}
-        >
-          <Grid templateColumns={"repeat(3, 1fr)"} templateRows={"repeat(3, 1fr)"}>
-            <GridItem rowSpan={1}></GridItem>
-          <GridItem rowSpan={2}>
-              <Center>
-                <Heading size="lg" p={3}>How It Works</Heading>
-              </Center>
-              <Text>Using a combination of fixed and calculated variables, our goal is to distribute the available assets in the fairest manner possible between the requesting nations.</Text>
-            </GridItem>
-            <GridItem colSpan={2}/>
-          </Grid>
-      </Container>
-    </Box>
-  );
-};
-
 const HomePageCard = ({header, body, button, isMobile=false}) => {
   return (
     <Card alignItems={"center"} maxW={isMobile ? "150px" : ""}>
@@ -112,6 +69,7 @@ class MainPage extends Component {
   }
 
   getHomePageCard = (type) => {
+    console.log(this.state.speciesList)
     if (type === "updateData") {
       return <HomePageCard
         header="Update Data"
@@ -147,14 +105,6 @@ class MainPage extends Component {
     this.setState({width: window.innerWidth});
   }
 
-  componentDidMount = () => {
-      window.addEventListener('resize', this.handleWindowSizeChange);
-      return () => {
-          window.removeEventListener('resize', this.handleWindowSizeChange);
-      }
-  };
-
-
   componentDidMount() {
     api.getHealth().then(response => {
       if (response.statusCode !== 200) {
@@ -185,6 +135,10 @@ class MainPage extends Component {
     }).catch(exception => {
       this.state.backendHealth = false;
     })
+    window.addEventListener('resize', this.handleWindowSizeChange);
+    return () => {
+        window.removeEventListener('resize', this.handleWindowSizeChange);
+    }
   }
 
   updateNation = (nationName, nationVariableData) => {
@@ -211,7 +165,7 @@ class MainPage extends Component {
             <GridItem rowSpan={1}><WebsiteHeader homePage={false}></WebsiteHeader></GridItem>
             <GridItem colSpan={12}><Divider/></GridItem>
             <GridItem colSpan={2}/>
-            <GridItem rowSpan={4} colSpan={this.state.isMobile ? 1 : 4} alignItems={"center"} display={"flex"}>
+            <GridItem rowSpan={4} colSpan={this.state.isMobile ? 1 : 4} alignItems={"center"} display={!this.state.isMobile ? "flex" : "block"}>
               <Box alignItems={"center"}>
                 <Heading p={!this.state.isMobile ? 3 : 0} textAlign={"center"} size="lg">How it Works</Heading>
                 <Text textAlign={"center"} p={3}>
