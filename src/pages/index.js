@@ -294,9 +294,7 @@ class MainPage extends Component {
                {this.getHomePageCard("profileData")}
               </GridItem> : <></> 
             }
-            {
-              !this.state.isMobile ?  <Footer></Footer> : <></>
-            }
+            <Footer></Footer>
           </Grid>
         ) : <ErrorPage></ErrorPage>
       }
