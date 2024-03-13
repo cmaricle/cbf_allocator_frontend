@@ -18,9 +18,13 @@ import {
   CardHeader,
   Divider,
   CardFooter,
+  IconButton,
   Link as ChakraLink,
+  position,
 } from '@chakra-ui/react';
 import { Link as ReactRouterLink } from 'react-router-dom'
+
+import { ChevronLeftIcon, ChevronRightIcon } from '@chakra-ui/icons';
 
 import WebsiteHeader from '../components/WebsiteHeader/WebsiteHeader';
 import Form  from '../components/Form';
@@ -76,40 +80,22 @@ const ParallaxHeroSection = ({speciesList, image, description, heading}) => {
   );
 };
 
-const HomeSection = ( {speciesList, nationList} ) => {
+const HomePageCard = ({header, body, button, isMobile=false}) => {
   return (
-    <Flex>
-      {/* Left-hand side */}
-      <Box flex="1" p="10">
-        <Heading variant={"solid"}  >
-          Update data
-        </Heading>
-        <Text fontSize="lg" mb="6">
-        Update Nation yearly request data or modify Nation variables
-        </Text>
-        <Spacer></Spacer>
-        <NationVariableForm
-          speciesList={speciesList}
-          nationsList={nationList}
-        />
-      </Box>
-      <Box flex="1" p="10">
-        <Heading variant={"solid"}>
-          View Historical Data
-        </Heading>
-        <Text fontSize="lg" mb="6">
-          View previous requests and allocations
-        </Text>
-        <Spacer></Spacer>
-        <Button 
-            variant={"solid"}
-        >
-          Get Started
-        </Button>
-      </Box>
-    </Flex>
-  );
-};
+    <Card alignItems={"center"} maxW={isMobile ? "150px" : ""}>
+        <CardHeader><Heading textAlign={"center"} size="md" noOfLines={1}>{header}</Heading></CardHeader>
+        <Divider/>
+        <CardBody noOfLines={3} textAlign={"center"}>
+          <Text>
+            {body}
+          </Text>
+        </CardBody>
+        <CardFooter>
+          {button}
+        </CardFooter>
+      </Card>
+  )
+}
 
 
 class MainPage extends Component {
@@ -119,8 +105,55 @@ class MainPage extends Component {
       nationsList: [],
       speciesList: [],
       backendHealth: true,  
+      width: window.innerWidth,
+      isMobile: window.innerWidth <= 768,
+      position: 0,
     }
   }
+
+  getHomePageCard = (type) => {
+    if (type === "updateData") {
+      return <HomePageCard
+        header="Update Data"
+        body="Update Nation yearly request data or modify Nation variables"
+        button={<NationVariableForm
+          speciesList={this.state.speciesList}
+          nationsList={this.state.nationsList}/>}
+        isMobile={this.state.isMobile}
+      />
+    } else if (type === "runAlgo") {
+      return <HomePageCard
+        header="Distribute Quota"
+        body="Run algorithm to distribute quota to requesting nations"
+        button={<Form 
+          buttonName={"Run Algorithm"}
+          speciesList={this.state.speciesList}
+          nationList={this.state.nationsList}
+        ></Form>}
+        isMobile={this.state.isMobile}
+        />
+    } else {
+      return <HomePageCard
+        header="View Profiles"
+        body="View profile page for nations to see their requests and assests"
+        button={<ProfilePageModal nationList={this.state.nationsList}></ProfilePageModal>}
+        isMobile={this.state.isMobile}
+
+        />
+      }
+  }
+
+  handleWindowSizeChange = () => {
+    this.setState({width: window.innerWidth});
+  }
+
+  componentDidMount = () => {
+      window.addEventListener('resize', this.handleWindowSizeChange);
+      return () => {
+          window.removeEventListener('resize', this.handleWindowSizeChange);
+      }
+  };
+
 
   componentDidMount() {
     api.getHealth().then(response => {
@@ -164,100 +197,107 @@ class MainPage extends Component {
       <ChakraProvider theme={theme}>
         { this.state.backendHealth ? 
         (
-        <Box
-          flexDirection="column"
-          // bgImage="website_background.jpeg"
-          // bgPos={"center"}
-        >
+        // <Box
+        //   flexDirection="column"
+        //   // bgImage="website_background.jpeg"
+        //   // bgPos={"center"}
+        // >
           <Grid 
-            maxW="100vw" maxH="100vh"
-            templateRows={"repeat(12, 1fr)"}
-            templateColumns={"repeat(12, 1fr)"}
+            maxW="100vw" 
+            maxH="100vh"
+            templateRows={!this.state.isMobile ? "repeat(12, 1fr)" : "repeat(10, 1fr)"}
+            templateColumns={!this.state.isMobile ? "repeat(12, 1fr)" : "repeat(4, 1fr)"}
           >
             <GridItem rowSpan={1}><WebsiteHeader homePage={false}></WebsiteHeader></GridItem>
             <GridItem colSpan={12}><Divider/></GridItem>
             <GridItem colSpan={2}/>
-            <GridItem rowSpan={4} colSpan={4} alignItems={"center"} display={"flex"}>
+            <GridItem rowSpan={4} colSpan={this.state.isMobile ? 1 : 4} alignItems={"center"} display={"flex"}>
               <Box alignItems={"center"}>
-                <Heading p={3} textAlign={"center"} size="lg">How it Works</Heading>
+                <Heading p={!this.state.isMobile ? 3 : 0} textAlign={"center"} size="lg">How it Works</Heading>
                 <Text textAlign={"center"} p={3}>
                   Using a combination of fixed and calculated variables, our goal is to distribute the available assets in the fairest manner possible between the requesting nations.
                 </Text>
-                <Center>
-                  <ChakraLink as={ReactRouterLink} to='/about'>
-                    <Button>
-                    Learn More
-                    </Button>
-                  </ChakraLink>
-                </Center>
+                { !this.state.isMobile ? 
+                  <Center>
+                    <ChakraLink as={ReactRouterLink} to='/about'>
+                      <Button>
+                      Learn More
+                      </Button>
+                    </ChakraLink>
+                  </Center>
+                  : <></>
+                }
               </Box>
             </GridItem>
             <GridItem colSpan={1}></GridItem>
-            <GridItem rowSpan={4} colSpan={3} p={5}>
+            <GridItem rowSpan={!this.state.isMobile ? 4 : 3} colSpan={!this.state.isMobile ? 3 : 2} p={! this.state.isMobile ? 5 : 0}>
               <Image
                 borderRadius={"5%"}
                 src="fishing_boat_birds.jpeg"
+                p={!this.state.isMobile ? 3 : 0}
               >
               </Image>
-            </GridItem>
+              {
+                this.state.isMobile ? <Center>
+                <ChakraLink as={ReactRouterLink} to='/about' p={3}>
+                  <Button>
+                  Learn More
+                  </Button>
+                </ChakraLink>
+              </Center>
+                 : <></>
+              }
+              </GridItem>
+              
             <GridItem colSpan={2}></GridItem>
-            <GridItem colSpan={12}/>
-            <GridItem colSpan={12} alignItems={"center"} display={"flex"}><Divider/></GridItem>
+            <GridItem colSpan={12}>{this.state.isMobile ? <Divider/> : <></>}</GridItem>
+            {
+              !this.state.isMobile ? <GridItem colSpan={12} alignItems={"center"} display={"flex"}><Divider/></GridItem> : <></>
+            }
 
             <GridItem colSpan={2}/>
-            <GridItem colSpan={2} >
-              <Card alignItems={"center"}>
-                <CardHeader><Heading size="md">Distribute Quota</Heading></CardHeader>
-                <Divider/>
-                <CardBody textAlign={"center"}>
-                  <Text>
-                    Run algorithm to distribute quota to requesting nations
-                  </Text>
-                </CardBody>
-                <CardFooter>
-                  <Form 
-                    buttonName={"Run Algorithm"}
-                    speciesList={this.state.speciesList}
-                    nationList={this.state.nationsList}
-                  >
-                  </Form></CardFooter>
-              </Card>
-            </GridItem>
-            <GridItem colSpan={1}></GridItem>
-            <GridItem colSpan={2}>
-              <Card alignItems={"center"} >
-                <CardHeader><Heading size="md">View Profile Pages</Heading></CardHeader>
-                <Divider/>
-                <CardBody textAlign={"center"}>
-                  <Text>
-                    View profile page for nations to see their requests and assests
-                  </Text>
-                </CardBody>
-                <CardFooter><ProfilePageModal nationList={this.state.nationsList}></ProfilePageModal></CardFooter>
-              </Card>
-            </GridItem>
-            <GridItem colSpan={1}></GridItem>
-            <GridItem colSpan={2} >
-              <Card alignItems={"center"}>
-                <CardHeader><Heading size="md">Update Data</Heading></CardHeader>
-                <Divider/>
-                <CardBody textAlign={"center"}>
-                  {/* <Image src="data_entry.jpg">
+            <GridItem colSpan={this.state.isMobile ? 1 : 2} display={"flex"} alignItems={"center"}>
+            {
+              this.state.isMobile ? 
+                <IconButton 
+                  icon={<ChevronLeftIcon/>}
+                  name="leftButton"
+                  background={"transparent"}
+                  color="green.800"
+                  onClick={(e) => this.setState({position: this.state.position === 2 ? 0 : this.state.position + 1})}
+                  /> : <></>
+              } {
+                this.state.position === 0 || !this.state.isMobile ? 
+                this.getHomePageCard("runAlgo", this.state) : this.state.position === 1 ? this.getHomePageCard("updateData") : this.getHomePageCard("profileCard")
+              }
 
-                  </Image> */}
-                  <Text>
-                  Update Nation yearly request data or modify Nation variables
-                  </Text>
-                </CardBody>
-                <CardFooter><NationVariableForm
-                speciesList={this.state.speciesList}
-                nationsList={this.state.nationsList}
-                /></CardFooter>
-              </Card>
             </GridItem>
-            <Footer></Footer>
+            <GridItem colSpan={this.state.isMobile ? 2 : 1}></GridItem>
+            <GridItem colSpan={this.state.isMobile ? 1 : 2} rowSpan={this.state.isMobile ? 3 : 0} display={this.state.isMobile ? "flex" : ""} alignItems={"center"}>
+              {
+                this.state.position === 0 || !this.state.isMobile ? 
+                this.getHomePageCard("updateData") : this.state.position === 1 ? this.getHomePageCard("profileCard") : this.getHomePageCard("profileCard")
+              }{
+                this.state.isMobile ? 
+                  <IconButton 
+                    icon={<ChevronRightIcon/>}
+                    name="rightButton"
+                    background={"transparent"}
+                    color="green.800"
+                    onClick={(e) => this.setState({position: this.state.position === 1 ? 0 : this.state.position + 1})}
+                    /> : <></>
+                }
+            </GridItem>
+            <GridItem colSpan={1}></GridItem>
+            { !this.state.isMobile ? 
+              <GridItem colSpan={this.state.isMobile ? 1 : 2}>
+               {this.getHomePageCard("profileData")}
+              </GridItem> : <></> 
+            }
+            {
+              !this.state.isMobile ?  <Footer></Footer> : <></>
+            }
           </Grid>
-        </Box>
         ) : <ErrorPage></ErrorPage>
       }
       </ChakraProvider>
