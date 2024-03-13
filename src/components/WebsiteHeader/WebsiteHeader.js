@@ -36,7 +36,7 @@ const WebsiteHeader  = ({hidden=false, homePage=false}) => {
   const { isOpen, onOpen, onClose } = useDisclosure()
   const [scrollY, setScrollY] = useState(0);
   const [backgroundColor, setBackgroundColor] = useState('transparent');
-  const [fontColor, setFontColor] = useState(location.pathname === "/" ? "white" : "green.800")
+  const [fontColor, setFontColor] = useState("green.800")
 
   useEffect(() => {
     const handleScroll = () => {
