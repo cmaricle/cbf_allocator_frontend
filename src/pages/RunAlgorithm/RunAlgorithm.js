@@ -91,7 +91,7 @@ function RunAlgorithm() {
         if (response["statusCode"] === 200) {
           setError(false);
           const results = response["body"]
-          if ("response" in results && results["response"].includes("Error")) {
+          if ("response" in results && results["response"].includes("No nations requested")) {
             setNoResults(true);
             localStorage.removeItem("rows")
             localStorage.removeItem("headers")
