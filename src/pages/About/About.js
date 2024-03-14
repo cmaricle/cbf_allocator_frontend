@@ -28,6 +28,7 @@ import {
   Image,
   Alert,
   AlertIcon,
+  Spacer,
 } from '@chakra-ui/react';
 import { TbSum } from "react-icons/tb";
 import { FiChevronRight, FiChevronDown } from "react-icons/fi";
@@ -231,9 +232,9 @@ const About = () => {
                   </Tr>
                   </Thead>
                   <Tbody>
-                  <Tr><Td>Nation A</Td><Td isNumeric>10</Td><Td isNumeric>20</Td><Td isNumeric>Y</Td><Td isNumeric>{15000/10000*100}</Td><Td isNumeric>0</Td></Tr>
-                  <Tr><Td>Nation B</Td><Td isNumeric>5</Td><Td isNumeric>10</Td><Td isNumeric>Y</Td><Td isNumeric>{10000/10000*100}</Td><Td isNumeric>0</Td></Tr>
-                  <Tr><Td>Nation C</Td><Td isNumeric>20</Td><Td isNumeric>40</Td><Td isNumeric>Y</Td><Td isNumeric>{5000/10000*100}</Td><Td isNumeric>10</Td></Tr>
+                  <Tr><Td>Nation A</Td><Td isNumeric>10</Td><Td isNumeric>28.6</Td><Td isNumeric>Y</Td><Td isNumeric>{15000/10000*100}</Td><Td isNumeric>0</Td></Tr>
+                  <Tr><Td>Nation B</Td><Td isNumeric>5</Td><Td isNumeric>14.3</Td><Td isNumeric>Y</Td><Td isNumeric>{10000/10000*100}</Td><Td isNumeric>0</Td></Tr>
+                  <Tr><Td>Nation C</Td><Td isNumeric>20</Td><Td isNumeric>57.1</Td><Td isNumeric>Y</Td><Td isNumeric>{5000/10000*100}</Td><Td isNumeric>10</Td></Tr>
                   <Tr><Td><Text as={isPrechecksVisisble ? "s" : ""}>Nation D</Text></Td><Td isNumeric><Text as={isPrechecksVisisble ? "s" : ""}>15</Text></Td><Td isNumeric><Text as={isPrechecksVisisble ? "s" : ""}>30</Text></Td><Td isNumeric><Text as={isPrechecksVisisble ? "s" : ""}>N</Text></Td><Td isNumeric><Text as={isPrechecksVisisble ? "s" : ""}>{5000/10000*100}</Text></Td><Td isNumeric><Text as={isPrechecksVisisble ? "s" : ""}>0</Text></Td></Tr>
                   </Tbody>
                 <TableCaption>Nation variables</TableCaption>
@@ -270,7 +271,7 @@ const About = () => {
            </Box> 
             <Center>
             <Card p={3} display={"-webkit-box"}>
-              <Text as="i" display="flex" alignItems={"center"}><TbSum display="inline-block"/> 20 + 150  + 0 + 0 + 0 = 170</Text>
+              <Text as="i" display="flex" alignItems={"center"}><TbSum display="inline-block"/> 28.6 + 150  + 0 + 0 + 0 = 178.6</Text>
             </Card>
             </Center>
             <Box p={3}>
@@ -288,12 +289,12 @@ const About = () => {
                     </Thead>
                     <Tbody>
                       <Tr>
-                        <Td>Nation A</Td><Td isNumeric>170</Td>
+                        <Td>Nation A</Td><Td isNumeric>178.6</Td>
                         </Tr>
                         <Tr>
-                        <Td>Nation B</Td><Td isNumeric>110</Td>
+                        <Td>Nation B</Td><Td isNumeric>119.3</Td>
                       </Tr>
-                      <Tr><Td>Nation C</Td><Td isNumeric>100</Td></Tr>
+                      <Tr><Td>Nation C</Td><Td isNumeric>137.1</Td></Tr>
                     </Tbody>
                   </Table>
                 </TableContainer>
@@ -303,7 +304,7 @@ const About = () => {
         <GridItem>
           <Box p={3}>
             <Heading size="sm" id="priority-val-calculation">Priority Value Calculation</Heading>
-            <Text>We then normalize these values to get a priority value for percentage share of the total allocation. This is a similar process to how we normalized the funds above.</Text>
+            <Text>We then normalize these values to get a priority value for percentage share of the total allocation. This is a similar process to how we normalized the funds above, however the list is now sorted from largest to smalled priority value.</Text>
           </Box>
           <Center>
               <Card>
@@ -317,12 +318,12 @@ const About = () => {
                     </Thead>
                     <Tbody>
                       <Tr>
-                        <Td>Nation A</Td><Td isNumeric>44.7</Td>
+                        <Td>Nation A</Td><Td isNumeric>41.0</Td>
                         </Tr>
+                        <Tr><Td>Nation C</Td><Td isNumeric>31.5</Td></Tr>
                         <Tr>
-                        <Td>Nation B</Td><Td isNumeric>28.9</Td>
+                        <Td>Nation B</Td><Td isNumeric>27.4</Td>
                       </Tr>
-                      <Tr><Td>Nation C</Td><Td isNumeric>26.3</Td></Tr>
                     </Tbody>
                   </Table>
                 </TableContainer>
@@ -333,7 +334,7 @@ const About = () => {
           <Box p={3}>
             <Heading size="sm" id="distribute-quota">Distribute Quota</Heading>
             <Text>
-              Now that we have these values, we can start dividing up the quota. Starting from the larger priority value, we
+              Now that we have these values, we can start dividing up the quota. Starting from the largest priority value, we
               multiply the value by the total quota available (10,000 lbs), round to the nearest 500lbs, and cycle through the list until all the quota has been distributed
               or all the nations' requests have been granted in full. Before allocating the quota to a nation on each iteration, we'll ensure 
               the nation has sufficient funds for the purchase and the granted amount does not exceed the requested amount. 
@@ -351,14 +352,47 @@ const About = () => {
                     </Thead>
                     <Tbody>
                       <Tr>
-                        <Td>Nation A</Td><Td isNumeric>4500</Td>
+                        <Td>Nation A</Td><Td isNumeric>4000</Td>
                         </Tr>
+                        <Tr><Td>Nation C</Td><Td isNumeric>3000</Td></Tr>
                         <Tr>
-                        <Td>Nation B</Td><Td isNumeric>3000</Td>
+                        <Td>Nation B</Td><Td isNumeric>2500</Td>
                       </Tr>
-                      <Tr><Td>Nation C</Td><Td isNumeric>2500</Td></Tr>
                     </Tbody>
                     <TableCaption>Round 1</TableCaption>
+                  </Table>
+                </TableContainer>
+              <RunAlgorithmChart 
+                aspectRatio={1}
+                barOneDataKey="requested_amount"
+                barTwoDataKey="allocated_amount"
+                data={[
+                  {"name": "Nation A", "requested_amount": 15000, "allocated_amount": 4000},
+                  {"name": "Nation B", "requested_amount": 10000, "allocated_amount": 3000},
+                  {"name": "Nation C", "requested_amount": 5000, "allocated_amount": 2500}
+                ]}
+              >
+                </RunAlgorithmChart>
+              </Card>
+              <Card>
+                <TableContainer display={"inline-table"} >
+                  <Table>
+                    <Thead>
+                      <Tr>
+                      <Th>Nation</Th>
+                      <Th isNumeric>Amount (lbs)</Th>
+                      </Tr>
+                    </Thead>
+                    <Tbody>
+                      <Tr>
+                        <Td>Nation A</Td><Td isNumeric>4500</Td>
+                        </Tr>
+                        <Tr><Td>Nation C</Td><Td isNumeric>3000</Td></Tr>
+                        <Tr>
+                        <Td>Nation B</Td><Td isNumeric>2500</Td>
+                      </Tr>
+                    </Tbody>
+                    <TableCaption>Round 2</TableCaption>
                   </Table>
                 </TableContainer>
               <RunAlgorithmChart 
@@ -375,7 +409,8 @@ const About = () => {
               </Card>
             </Center>
             <Box p={3}>
-              <Text>In this case, we have reached the total quota amount in round 1.
+              <Text>After round 1, we have 500 lbs left. The process repeats, using the same priority values since no nations' requested amount has been fufilled. 
+                Because the minimum quota is 500 lbs, the last chunk is granted in full to Nation A, bringing their total to 4500 lbs.
               </Text></Box>
         </GridItem>
         <GridItem>
