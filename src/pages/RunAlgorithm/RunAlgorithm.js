@@ -48,6 +48,7 @@ import WebsiteHeader from "../../components/WebsiteHeader/WebsiteHeader";
 import AlertPopUp from "../../components/AlertPopUp/AlertPopUp";
 import  RunAlgorithmChart  from "../../components/BarChart/BarChart";
 import theme from "../../theme";
+import Footer from "../../components/Footer";
 
 function RunAlgorithm() {
   const location = useLocation();
@@ -90,7 +91,7 @@ function RunAlgorithm() {
         if (response["statusCode"] === 200) {
           setError(false);
           const results = response["body"]
-          if ("response" in results) {
+          if ("response" in results && results["response"].includes("Error")) {
             setNoResults(true);
             localStorage.removeItem("rows")
             localStorage.removeItem("headers")
@@ -113,9 +114,16 @@ function RunAlgorithm() {
             headers.push("Submit")
             setRowHeaders(headers);
             var mergedDict = {}
+            console.log(licenseDict)
             if (!quotaDictEmpty && !licenseDictEmpty) {
               Object.keys(quotaDict).forEach((key) => {
-                mergedDict[key] = [...quotaDict[key], ...licenseDict[key]];
+                if (key in quotaDict && key in licenseDict) {
+                  mergedDict[key] = [...quotaDict[key], ...licenseDict[key]];
+                } else if (key in quotaDict) {
+                  mergedDict[key] = [...quotaDict[key], 0, 0]
+                } else {
+                  mergedDict[key] = [0, 0, ...licenseDict[key]]
+                }
               });            
             } else if(!quotaDictEmpty) {
               mergedDict = quotaDict
@@ -123,11 +131,15 @@ function RunAlgorithm() {
               mergedDict = licenseDict
             }
             setRows(mergedDict)
+            console.log(mergedDict)
+            
           }
           const pastRunVariables = "response" in results ? results : {}
           pastRunVariables["quota"] = quota
           pastRunVariables["species"] = species
           pastRunVariables["license"] = license
+          console.log(mergedDict)
+          console.log("here")
           setAlgorithmResults(pastRunVariables)
           localStorage.setItem("rows", JSON.stringify(mergedDict))
           localStorage.setItem("headers", JSON.stringify(headers))
@@ -135,10 +147,12 @@ function RunAlgorithm() {
           setIsLoading(false);
         }
         else {
+          console.log("here")
           setError(true);
           setIsLoading(false);
         }
     }).catch((exception => {
+        console.log(exception)
         setError(true);
         setIsLoading(false);
     }))
@@ -152,13 +166,13 @@ function RunAlgorithm() {
       for (const key in response[`requested_${type}`]) {
         mergedDict[key] = [response[`requested_${type}`][key], mergedDict[key]]
       }
+      console.log(mergedDict)
       return mergedDict
     }
     return {}
   }
 
   useEffect(() => {
-    console.log("here")
     const unlisten = history.listen(() => {
       localStorage.removeItem("algorithmResults")
       localStorage.removeItem("nationsSubmitted")
@@ -173,8 +187,7 @@ function RunAlgorithm() {
   }, []);
   
   const alertUser = (e) => {
-    console.log(updatedValues)
-    console.log(nationSubmitted)
+
     if (Object.keys(updatedValues).length !== 0 || Object.keys(nationsSubmitted).length !== 0) {
       e.preventDefault();
     }
@@ -185,7 +198,9 @@ function RunAlgorithm() {
     var rows = localStorage.getItem("rows")
     var headers = localStorage.getItem("headers")
     if (!localAlgorithmResults || !rows || !headers || localAlgorithmResults["quota"] !== quota || localAlgorithmResults["species"] !== species) {
-      runAlgorithm(species, quota);
+      runAlgorithm(species, quota).then(response => {
+
+      });
     } else {
       if (rows !== undefined) {
         setRows(JSON.parse(rows))
@@ -499,7 +514,7 @@ function RunAlgorithm() {
             Object.keys(response).length > 0 || Object.keys(JSON.parse(localStorage.getItem("results")).length > 0) ? 
               <>
               {
-                quota > 0 && algorithmResults["quota"] === quota && algorithmResults["species"] === species ?
+                quota > 0  ?
                 <GridItem>
                   <Center><Heading as="i" size="md">Quota Distribution</Heading></Center>
                   <RunAlgorithmChart barOneDataKey="requested_quota" barTwoDataKey="granted_quota" aspectRatio={getAspectRatio()} data={transformObject(response, "quota")}/>
@@ -631,6 +646,8 @@ function RunAlgorithm() {
             </Form>
         </GridItem>
     </Grid>
+    <Footer/>
+    
     </Box>
     <AlertPopUp 
       isOpen={submit && nationSubmitted !== ""} 
