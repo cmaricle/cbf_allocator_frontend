@@ -495,6 +495,7 @@ function RunAlgorithm() {
                       "footer"`}
       gap='10'
       minHeight="100vh"
+      maxH="100vh"
       width="100vw"
     >
       <GridItem area={"header"}>
@@ -646,7 +647,6 @@ function RunAlgorithm() {
             </Form>
         </GridItem>
     </Grid>
-    <Footer/>
     
     </Box>
     <AlertPopUp 
