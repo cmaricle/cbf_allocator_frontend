@@ -441,7 +441,7 @@ class NationPage extends Component {
                         <Stat>
                           <StatLabel>{species}</StatLabel>
                           <StatNumber>{
-                            "granted_quota" in grant && grant["granted_quota"] !== 0 ? "quota: " + this.formatStat(this.formatNumber(grant["granted_quota"])) : ""}
+                            "granted_quota" in grant && grant["granted_quota"] !== 0 ? "quota: " + this.formatStat(this.formatNumber(grant["granted_quota"])) +"0" : ""}
                             { "granted_license" in grant && grant["granted_license"] !== 0 ? "license: " + this.formatNumber(grant["granted_license"]) : ""}
                             </StatNumber>
                           <StatHelpText>{`$${this.formatNumber(grant["cost"])}`}</StatHelpText>

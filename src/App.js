@@ -18,6 +18,7 @@ import CreateUser from './components/CreateUser/CreateUser';
 import ErrorPage from './pages/Error';
 import NotFound from './pages/NotFound'
 import NationPage from './pages/NationPage/NationPage';
+import About from './pages/About/About'
 
 
 const PrivateRoute = ({ component: Component, runAlgo, location, ...rest }) => {
@@ -50,6 +51,7 @@ class App extends Component {
 					<Route path="/error" component={ErrorPage}/>
 					<Route path="/404" component={NotFound} />
 					<PrivateRoute path="/profile/:id" runAlgo={false} component={NationPage}/>
+					<PrivateRoute path="/about" runAlgo={false} component={About}/>
 					<PrivateRoute path="/run-algorithm" component={RunAlgorithm} runAlgo={true}/>
 					<PrivateRoute path="/" runAlgo={false} component={MainPage}/>
 				</Switch>
