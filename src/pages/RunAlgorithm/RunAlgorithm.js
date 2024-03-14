@@ -48,7 +48,6 @@ import WebsiteHeader from "../../components/WebsiteHeader/WebsiteHeader";
 import AlertPopUp from "../../components/AlertPopUp/AlertPopUp";
 import  RunAlgorithmChart  from "../../components/BarChart/BarChart";
 import theme from "../../theme";
-import Footer from "../../components/Footer";
 
 function RunAlgorithm() {
   const location = useLocation();
@@ -71,6 +70,8 @@ function RunAlgorithm() {
   const [loadingGrant, setLoadingGrant] = useState(false)
   const [checkingFunds, setCheckingFunds] = useState(false)
   const [insufficientFunds, setInsufficientFunds] = useState(false)
+  const [quotaRequestsAllZero, setQuotaRequestsAllZero] = useState(false)
+  const [licenseRequestAllZero, setLicenseRequestAllZero] = useState(false)
   const toast = useToast();
   const [, forceUpdate] = useReducer(x => x + 1, 0);
 
@@ -89,6 +90,8 @@ function RunAlgorithm() {
         }
       ).then((response) => {
         if (response["statusCode"] === 200) {
+          setLicenseRequestAllZero(false)
+          setQuotaRequestsAllZero(false)
           setError(false);
           const results = response["body"]
           if ("response" in results && results["response"].includes("No nations requested")) {
@@ -166,7 +169,13 @@ function RunAlgorithm() {
       for (const key in response[`requested_${type}`]) {
         mergedDict[key] = [response[`requested_${type}`][key], mergedDict[key]]
       }
-      console.log(mergedDict)
+      if (Object.values(mergedDict).flat().every(element => element === 0)){
+        if(type === "quota") {
+          setQuotaRequestsAllZero(true)
+        } else {
+          setLicenseRequestAllZero(true)
+        }
+      }
       return mergedDict
     }
     return {}
@@ -187,7 +196,6 @@ function RunAlgorithm() {
   }, []);
   
   const alertUser = (e) => {
-
     if (Object.keys(updatedValues).length !== 0 || Object.keys(nationsSubmitted).length !== 0) {
       e.preventDefault();
     }
@@ -222,13 +230,15 @@ function RunAlgorithm() {
         let grantTotal = 0
         for (const key in originalGrants) {
           if (key !== nation) {
-            if (key in updatedValues) {
+            console.log(updatedValues)
+            if (key in updatedValues && type in updatedValues[key]) {
               grantTotal = grantTotal + updatedValues[key][`${type}`]
             } else {
               grantTotal = grantTotal + originalGrants[key]
             }
           }
         }
+        console.log(grantTotal)
         return Math.min(algorithmResults[`${type}`] - grantTotal, requestedAmount)
       }
     }
@@ -245,7 +255,6 @@ function RunAlgorithm() {
     }
     if (quota > 0 && license > 0) {
         const changeType = changedRow.split("-")[1]
-        console.log(changeType)
         if (changeType == 1) {
           updatedNationValues[nationName]["quota"] = Number(val)
         } else {
@@ -465,15 +474,16 @@ function RunAlgorithm() {
         let data = {
           name: key,
         }
-        if (!(key in updatedValues) || !JSON.stringify(updatedValues).includes(type)) {
-          data[granted_key] = inputObject[`${type}_response`][granted_key][key]
-          data[requested_key] = inputObject[`${type}_response`][requested_key][key]
-        } else {
-          data[granted_key] = updatedValues[key][type]
-          data[requested_key] = inputObject[`${type}_response`][requested_key][key]
+        if (inputObject[`${type}_response`][requested_key][key] !== 0) {
+          if (!(key in updatedValues) || !JSON.stringify(updatedValues).includes(type)) {
+            data[granted_key] = inputObject[`${type}_response`][granted_key][key]
+            data[requested_key] = inputObject[`${type}_response`][requested_key][key]
+          } else {
+            data[granted_key] = updatedValues[key][type]
+            data[requested_key] = inputObject[`${type}_response`][requested_key][key]
+          }
+          transformedObject.push(data)
         }
-
-        transformedObject.push(data)
     });
     return transformedObject;
   }
@@ -509,29 +519,29 @@ function RunAlgorithm() {
       (
       <Grid templateRows={"repeat(2, 1fr)"} gap={5} alignItems={"center"}>
           <GridItem rowSpan={1}>
-          
-          <Grid templateColumns={license > 0 && quota > 0 ? "repeat(2, 1fr)" : "repeat(1, 1fr)"} gap={5}>
-          {
+          <SimpleGrid columns={(quota > 0 && !quotaRequestsAllZero && license > 0 && !licenseRequestAllZero) ? 2 : 1}>
+            {
             Object.keys(response).length > 0 || Object.keys(JSON.parse(localStorage.getItem("results")).length > 0) ? 
               <>
               {
-                quota > 0  ?
-                <GridItem>
-                  <Center><Heading as="i" size="md">Quota Distribution</Heading></Center>
-                  <RunAlgorithmChart barOneDataKey="requested_quota" barTwoDataKey="granted_quota" aspectRatio={getAspectRatio()} data={transformObject(response, "quota")}/>
-                </GridItem> : <></> 
+                quota > 0  && Object.keys(JSON.parse(localStorage.getItem("results"))).includes("quota_response")
+                && !quotaRequestsAllZero ?
+                <RunAlgorithmChart header={"Quota Distribution"} barOneDataKey="requested_quota" barTwoDataKey="granted_quota" aspectRatio={getAspectRatio()} data={transformObject(response, "quota")}/>
+                  : <></> 
               }
               {
-                license > 0 && localStorage.getItem("results").includes("license") ?
-                <GridItem>
-                <Center><Heading as="i" size="md">License Distribution</Heading></Center>
-                <RunAlgorithmChart barOneDataKey="requested_license" barTwoDataKey="granted_license" aspectRatio={getAspectRatio()} data={transformObject(response, "license")}></RunAlgorithmChart>
-                </GridItem> : <></>
+                license > 0 
+                && Object.keys(JSON.parse(localStorage.getItem("results"))).includes("license_response")
+                && !licenseRequestAllZero 
+                ?
+                
+                <RunAlgorithmChart header={"License Distribution"} barOneDataKey="requested_license" barTwoDataKey="granted_license" aspectRatio={getAspectRatio()} data={transformObject(response, "license")}></RunAlgorithmChart>
+                 : <></>
               }
               </>
             : <></>
           }
-        </Grid>
+          </SimpleGrid>
         </GridItem>
         <GridItem rowSpan={1}>
       <TableContainer>
@@ -566,6 +576,7 @@ function RunAlgorithm() {
             <Tbody>
             {
               Object.entries(rows).map(([key, value]) => (
+                !value.every(element => element === 0) ? 
                 <Tr key={key}>
                   <Td><ChakraLink 
                     to={`/profile/${key}`} 
@@ -580,9 +591,6 @@ function RunAlgorithm() {
                       ) : (nationStatus(key)) ? 
                       (<Text>{getValue(key, item, index)}</Text>) :
                        (
-                        // <FormControl 
-                        //   isInvalid={isInvalidValue(key, item, index)}
-                        // >
                         <NumberInput
                           name={`${key}-${index}`}
                           min={0}
@@ -624,7 +632,7 @@ function RunAlgorithm() {
                     )}
                   </Td>
                   <Td></Td>
-                </Tr>
+                </Tr> : <></>
               ))
             }
             </Tbody>
