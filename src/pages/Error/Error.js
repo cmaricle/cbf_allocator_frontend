@@ -5,7 +5,7 @@ import { ChakraProvider, Link as ChakraLink, Box, Button, Heading, Text, VStack 
 
 import theme from '../../theme';
 
-const ErrorPage = ({ error }) => {
+const ErrorPage = () => {
   return (
     <ChakraProvider theme={theme}>
        <VStack height="100vh" justifyContent="center">

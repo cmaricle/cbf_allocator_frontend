@@ -8,26 +8,7 @@ const METHOD = {
 };
 
 
-// Log outgoing requests
-const logRequest =  (url, body = undefined) => {
-	let message = `${url}`;
-	if (body) message += `\nWith body: ${JSON.stringify(body)}`;
-
-	console.info(message);
-};
-
-// Log incoming responses
-const logResponse = (url, body = undefined) => {
-	let message = `${url}`;
-	if (body) message += `\nWith body: ${JSON.stringify(body)}`;
-
-	console.info(message);
-};
-
-// Compose fetch with logging & JSON parsing
 const myFetch = (url, options = {}, maxRetries = 3, baseDelay = 2000) => {
-    // logRequest(url, options);
-
     const fetchWithRetry = async (url, options, retries) => {
         try {
             if (!options.headers) {
@@ -68,7 +49,6 @@ const myFetch = (url, options = {}, maxRetries = 3, baseDelay = 2000) => {
                     statusCode: response.status,
                 };
             } else {
-                // Handle non-JSON response here if needed
                 return {
                     body: null,
                     statusCode: response.status,

@@ -1,6 +1,11 @@
 import React, { Component } from "react";
-import { useHistory } from 'react-router-dom';
-import { Box, ChakraProvider, Container, Heading, SimpleGrid, TableContainer,
+import { 
+  SimpleGrid,
+  Box,
+  Heading,
+  ChakraProvider,
+  Container,
+  TableContainer,
   Alert, 
   AlertIcon,
   Center,
@@ -22,7 +27,8 @@ import { Box, ChakraProvider, Container, Heading, SimpleGrid, TableContainer,
   StatHelpText,
   Card,
   Tooltip,
-  RadioGroup, } from "@chakra-ui/react";
+  RadioGroup, 
+} from "@chakra-ui/react";
 
 
 import * as api from "../../modules/api"

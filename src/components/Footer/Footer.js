@@ -1,29 +1,17 @@
-import React, { Component, useState, useEffect } from "react";
-import { useHistory, useLocation } from 'react-router-dom';
-import PropTypes from 'prop-types';
-
-import { IoHomeOutline, IoSettingsOutline, IoLogOutOutline } from "react-icons/io5";
-
-import { Link as ReactRouterLink } from 'react-router-dom'
-import { FormLabel, Link as ChakraLink, LinkProps, Center } from '@chakra-ui/react'
+import React, { useState } from "react";
+import { useLocation } from 'react-router-dom';
 
 
 import { 
   Box,
-  ButtonGroup,
-  Flex, 
+  Center,
   Heading,
   Grid,
-  useDisclosure, 
 } from '@chakra-ui/react'
 
-import { HamburgerIcon } from "@chakra-ui/icons";
 
 const Footer  = ({hidden=false}) => {
   const location = useLocation();
-
-  const { isOpen, onOpen, onClose } = useDisclosure()
-  const [scrollY, setScrollY] = useState(0);
   const [backgroundColor, setBackgroundColor] = useState('green.800');
   const [fontColor, setFontColor] = useState("white")
 

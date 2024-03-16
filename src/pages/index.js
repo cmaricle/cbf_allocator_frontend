@@ -1,17 +1,13 @@
-// src/components/ParallaxReplicatedWebsite.js
-import React, { useState, useEffect, Component } from 'react';
+import React, { Component } from 'react';
 import {
   ChakraProvider,
   Box,
-  Flex,
   Heading,
   Text,
   Button,
-  Container,
   Grid,
   GridItem,
   Card,
-  Spacer,
   Center,
   Image,
   CardBody,
@@ -20,7 +16,6 @@ import {
   CardFooter,
   IconButton,
   Link as ChakraLink,
-  position,
 } from '@chakra-ui/react';
 import { Link as ReactRouterLink } from 'react-router-dom'
 

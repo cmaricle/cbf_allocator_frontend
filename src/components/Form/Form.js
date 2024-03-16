@@ -6,7 +6,6 @@ import { ChakraProvider, Divider, FormLabel, Link as ChakraLink, RadioGroup, Rad
 import {
   Box,
   Button,
-  VStack,
   Link,
   Modal,
   ModalOverlay,
@@ -15,7 +14,6 @@ import {
   ModalFooter,
   ModalBody,
   ModalCloseButton,
-  StackDivider,
   useDisclosure,
   ButtonGroup,
 } from '@chakra-ui/react'
@@ -35,7 +33,6 @@ function Form({buttonName, speciesList, link=false}) {
   const [isDisabled, setIsDisabled] = useState(true);
   const [quotaDollarAmount, setQuotaDollarAmount] = useState(0);
   const [licenseDollarAmount, setLicenseDollarAmount] = useState(0);
-  const [loading, setLoading] = useState(false);
   const [year, setYear] = useState("2024");
 
   const handleSpeciesChange = (event) => {

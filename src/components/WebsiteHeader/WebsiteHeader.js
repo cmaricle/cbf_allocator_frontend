@@ -1,23 +1,14 @@
-import React, { Component, useState, useEffect } from "react";
-import { useHistory, useLocation } from 'react-router-dom';
-import PropTypes from 'prop-types';
+import React, { useState, useEffect } from "react";
+import { useHistory, useLocation, Link as ReactRouterLink } from 'react-router-dom';
 
-import { IoHomeOutline, IoSettingsOutline, IoLogOutOutline } from "react-icons/io5";
+import { IoHomeOutline, IoLogOutOutline } from "react-icons/io5";
 
-import { Link as ReactRouterLink } from 'react-router-dom'
-import { FormLabel, Link as ChakraLink, LinkProps, Center } from '@chakra-ui/react'
+import { Link as ChakraLink, Center } from '@chakra-ui/react'
 
 
 import { 
   Box,
   ButtonGroup,
-  Drawer,
-  DrawerBody,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerOverlay,
-  DrawerContent,
-  DrawerCloseButton,
   Flex, 
   Heading,
   IconButton,

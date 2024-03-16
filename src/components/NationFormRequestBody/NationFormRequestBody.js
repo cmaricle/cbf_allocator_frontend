@@ -19,7 +19,7 @@ import {
   Heading,
   Divider,
 } from '@chakra-ui/react';
-import { Select, CreatableSelect, AsyncSelect } from "chakra-react-select";
+import { Select } from "chakra-react-select";
 
 
 import ApiSelect from "../Select/Select";

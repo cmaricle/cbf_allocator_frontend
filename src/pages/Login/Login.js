@@ -13,12 +13,12 @@ import {
   Link as ChakraLink,
   Stack,
   useToast,
-  Box,
   Card,
   Heading,
   GridItem,
   Center,
 } from '@chakra-ui/react';
+
 import WebsiteHeader from '../../components/WebsiteHeader/WebsiteHeader';
 import AlertPopUp from '../../components/AlertPopUp/AlertPopUp';
 import theme from '../../theme';

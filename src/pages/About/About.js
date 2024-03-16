@@ -8,7 +8,6 @@ import {
   GridItem,
   Heading,
   Text,
-  Flex,
   TableContainer,
   Table,
   Th,
@@ -28,7 +27,6 @@ import {
   Image,
   Alert,
   AlertIcon,
-  Spacer,
 } from '@chakra-ui/react';
 import { TbSum } from "react-icons/tb";
 import { FiChevronRight, FiChevronDown } from "react-icons/fi";
