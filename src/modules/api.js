@@ -230,3 +230,12 @@ export const getFunds = (nationName) => {
         }))
     })
 }
+
+export const getHealthWithAuth = () => {
+    const url = `${SERVER_URL}/health-authenticated`
+    return new Promise((resolve) => {
+        resolve(myFetch(url, {
+            method: METHOD.GET,
+        }))
+    })
+}

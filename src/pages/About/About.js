@@ -35,17 +35,27 @@ import { FiChevronRight, FiChevronDown } from "react-icons/fi";
 
 
 import theme from "../../theme";
+import { useAuth } from "../../AuthContext"
 import WebsiteHeader from '../../components/WebsiteHeader/WebsiteHeader';
 import RunAlgorithmChart from '../../components/BarChart/BarChart';
-import Footer from '../../components/Footer';
+import * as api from '../../modules/api'
 
 
 const TableOfContents = ({ items }) => {
+  const { logout } = useAuth()
   const [activeItemIndex, setActiveItemIndex] = React.useState(true);
 
   const handleClick = (index) => {
     setActiveItemIndex(activeItemIndex === index ? null : index);
   };
+
+  useEffect (() => {
+    api.getHealthWithAuth().then(response => { 
+      if (response.statusCode !== 200) {
+        logout()
+      }
+    })
+  }, {})
 
   return (
     <Box as="nav">
