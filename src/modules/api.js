@@ -7,6 +7,17 @@ const METHOD = {
 	DELETE: 'DELETE',
 };
 
+function generateTraceId(length=16) {
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const charactersLength = characters.length;
+    let traceId = '';
+  
+    for (let i = 0; i < length; i++) {
+      traceId += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+  
+    return traceId;
+}
 
 const myFetch = (url, options = {}, maxRetries = 3, baseDelay = 2000) => {
     const fetchWithRetry = async (url, options, retries) => {
@@ -19,7 +30,8 @@ const myFetch = (url, options = {}, maxRetries = 3, baseDelay = 2000) => {
             }
             if (localStorage.getItem("token")) {
                 options.headers["authorization"] = `Bearer ${localStorage.getItem("token")}`
-            }  
+            }
+            options.headers["x_trace_id"] = generateTraceId()
              
             const response = await fetch(url, {
                 headers: {
