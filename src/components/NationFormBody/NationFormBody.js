@@ -75,7 +75,7 @@ class NationFormBody extends Component {
         <FormLabel>Funds Percentage</FormLabel>
         <Flex>
           <SimpleGrid columns={2}>
-            { this.props.fundsInputVariable === 0 || this.props.fundsUpdated || true?
+            { this.props.fundsInputVariable === 0 || this.props.fundsUpdated ?
               (<NumberInput 
                 step={0.5} 
                 clampValueOnBlur={false} 
