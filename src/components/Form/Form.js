@@ -1,7 +1,7 @@
 import React, {useState} from "react";
 
 import { Link as ReactRouterLink } from 'react-router-dom'
-import { ChakraProvider, Divider, FormLabel, Link as ChakraLink, RadioGroup, Radio, Stack, Center, SimpleGrid, NumberInput, NumberInputField } from '@chakra-ui/react'
+import { ChakraProvider, Divider, FormLabel, Link as ChakraLink, RadioGroup, Radio, Stack, Center, SimpleGrid, NumberInput, NumberInputField, FormControl } from '@chakra-ui/react'
 
 import {
   Box,
@@ -127,7 +127,7 @@ function Form({buttonName, speciesList, link=false}) {
                     </Box>
                   <Box hidden={selectedQuota === 0}>
                     <SimpleGrid columns={1}>
-                    <FormLabel>Enter cost per unit</FormLabel>
+                    <FormControl isRequired><FormLabel>Enter cost per unit</FormLabel></FormControl>
                     <NumberInput min={0} value={format(quotaDollarAmount)} onChange={(val) => setQuotaDollarAmount(parse(val))}>
                         <NumberInputField></NumberInputField></NumberInput>
                     </SimpleGrid>
@@ -145,7 +145,7 @@ function Form({buttonName, speciesList, link=false}) {
                     </Box>
                   <Box hidden={selectedLicense === 0}>
                     <SimpleGrid columns={1}>
-                    <FormLabel>Enter cost per unit</FormLabel>
+                    <FormControl isRequired><FormLabel>Enter cost per unit</FormLabel></FormControl>
                     <NumberInput min={0} value={format(licenseDollarAmount)} onChange={(val) => setLicenseDollarAmount(parse(val, "license"))}>
                         <NumberInputField></NumberInputField></NumberInput>                    </SimpleGrid>
                   </Box>

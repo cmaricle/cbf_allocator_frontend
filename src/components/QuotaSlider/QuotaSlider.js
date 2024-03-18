@@ -20,8 +20,17 @@ import {
 function QuotaSlider({ onSelect, maxValue, step }) {
   const [value, setValue] = React.useState(0)
   const handleChange = (value) => {
-    setValue(value)
-    onSelect(value)
+    let strVal = String(value)
+    if (value !== NaN && !strVal.includes("-") && !strVal.includes(".") && !strVal.includes("+")) {
+      setValue(value)
+      onSelect(value)
+    }
+  }
+
+  const roundValue = () => {
+    if (value % step !== 0) {
+      setValue(Math.round(value/step) * step)
+    }
   }
 
   return (
@@ -32,6 +41,7 @@ function QuotaSlider({ onSelect, maxValue, step }) {
         mr='2rem' 
         value={value} 
         onChange={handleChange}
+        onBlur={roundValue}
         step={step}
         min={0}
         >

@@ -200,14 +200,14 @@ class NationFormRequestBody extends Component {
             value={this.props.nationToShowInSelect}
           />
         </FormControl>
-        <RadioGroup p={2} hidden={this.props.nationToShowInSelect.length === 0} onChange={this.props.setSelectedYear} value={this.props.selectedYear}>
+        <RadioGroup p={2} hidden={this.props.nationToShowInSelect.length === 0} onChange={this.setYear} value={this.props.selectedYear}>
           <Stack direction="row">
             {[2024, 2025, 2026, 2027, 2028].map(year => (
               <Radio key={year} value={String(year)}>{year}</Radio>
             ))}
           </Stack>
         </RadioGroup>
-        <Box hidden={this.props.selectedYear === 0}>
+        <Box hidden={!this.props.selectedYear}>
           {
             this.props.nationToShowInSelect.map((value, index) => {
               return(
