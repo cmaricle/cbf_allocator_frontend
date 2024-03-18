@@ -201,6 +201,7 @@ class NationPage extends Component {
   }
 
   setSpeciesToShowInSelect(result, yearToShowInSelect, nationName) {
+    console.log("here")
     let speciesToShowList = new Set()
     if (yearToShowInSelect.length === 1) {
       speciesToShowList.add("*")
@@ -209,7 +210,7 @@ class NationPage extends Component {
     Object.values(result).forEach(item =>
       nationName === item["nation_name"] ? speciesToShowList.add("species" in item ? item["species"] : item["name"]) : {}
     )
-    if (nationName !== this.state.nationName && this.state.yearRequests.length > 1) {
+    if (nationName !== this.state.nationName && this.state.yearToShowInSelect.length > 1) {
       this.setState({species: [...speciesToShowList][0]})
     }
     this.setState({speciesToShow: Array.from(speciesToShowList)})

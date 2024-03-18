@@ -74,6 +74,7 @@ function Form({ speciesList, nationsList }) {
     setUpdateType("");
     setQuotaValue(0);
     setLicenseValue(0);
+    setSelectedYear(0)
     onClose();
   }
 
@@ -283,6 +284,7 @@ function Form({ speciesList, nationsList }) {
                 setSelectedNation={setSelectedNation}
                 setSelectedSpecies={setSelectedSpecies}
                 setSelectedYear={setSelectedYear}
+                selectedYear={selectedYear}
                 nationsList={nationsList}
                 speciesList={speciesList}
                 setLoading={setLoading}
