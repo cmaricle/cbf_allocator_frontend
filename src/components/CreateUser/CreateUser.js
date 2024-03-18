@@ -19,6 +19,7 @@ import {
 import theme from '../../theme';
 import * as api from '../../modules/api';
 import WebsiteHeader from '../WebsiteHeader/WebsiteHeader';
+import Footer from '../Footer';
 
 
 const CreateUser = () => {
@@ -33,7 +34,6 @@ const CreateUser = () => {
     setLoading(true);
 
     try {
-      // Call the API to create a new user
       const hashedPassword = sha256(password).toString()
       const result = await api.createUser( username, hashedPassword, email );
       const response = result["body"]
@@ -78,8 +78,13 @@ const CreateUser = () => {
 
   return (
     <ChakraProvider theme={theme}>
-            <WebsiteHeader />
-      <Container maxW="container.sm" centerContent>
+      <WebsiteHeader />
+      <Container 
+        maxW="container.sm" 
+        height="100vh"
+        justifyContent={"center"}
+        centerContent
+      >
         <Box mt="10">
           <Heading as="h2" size="xl" mb="6">
             Create a New User
@@ -144,6 +149,7 @@ const CreateUser = () => {
             Create User
           </Button>
         </Box>
+        <Footer/>
       </Container>
     </ChakraProvider>
   );

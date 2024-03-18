@@ -590,7 +590,7 @@ function RunAlgorithm() {
                           name={`${key}-${index}`}
                           min={0}
                           step={getType(index) === "quota" ? 500 : 1}
-                          max={getTotalGrantColumn(key, updatedValues, Number(rows[key][index - 1], index))}
+                          max={getTotalGrantColumn(key, updatedValues, Number(rows[key][index - 1]), index)}
                           keepWithinRange={true}
                           clampValueOnBlur={true}
                           value={Number(format(getValue(key, item, index)))}
