@@ -70,7 +70,7 @@ function Form({buttonName, speciesList, link=false}) {
     val.replace(/^\$/, '')
     val.replace('/^0*(\S+)/', '')
     console.log(val)
-    if (Number(val) !== NaN && !val.includes("e") && !val.includes("-")) {
+    if (Number(val) !== NaN && !val.includes("e") && !val.includes("-") &&  !val.includes("+")) {
       if (val === ""){
         return 0
       }
