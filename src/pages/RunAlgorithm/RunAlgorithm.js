@@ -432,7 +432,7 @@ function RunAlgorithm() {
   }
 
   const getAspectRatio = () => {
-    if (quota > 0 && license > 0) { 
+    if (quota > 0 && !quotaRequestsAllZero && license > 0 && !licenseRequestAllZero) { 
       return 3
     } else {
       return 6
