@@ -99,7 +99,6 @@ class NationFormRequestBody extends Component {
             )
           }
         })
-        console.log(updatedNationOptions)
         this.props.handleNationChange(updatedNationOptions)
         this.props.setUserUpdated(false);
       }
@@ -115,6 +114,8 @@ class NationFormRequestBody extends Component {
     const selectedSpecies = e.target.value;
     this.props.setSelectedSpecies(selectedSpecies)
     this.setState({ selectedSpecies });
+    this.props.setSelectedYear(0)
+  
     if (this.state.selectedYear !== "") {
       this.getYearRequest(selectedSpecies, this.state.selectedYear)
     }

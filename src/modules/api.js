@@ -107,7 +107,7 @@ export const updateNationVariables = (nationName, nationVariables) => {
     );
 }
 
-export const updateNationRequest = (nationName, species, year, requested_quota, requested_license) => {
+export async function updateNationRequest (nationName, species, year, requested_quota, requested_license) {
     const url = `${SERVER_URL}/nation/update-request/${nationName}`
     return new Promise((resolve) => {
         resolve(
@@ -122,6 +122,18 @@ export const updateNationRequest = (nationName, species, year, requested_quota, 
         }))}
     );
 }
+
+export async function updateNationRequests (data) {
+    const url = `${SERVER_URL}/nation/update-requests`
+    return new Promise((resolve) => {
+        resolve(
+            myFetch(url, {
+            method: METHOD.POST,
+            body: JSON.stringify(data)
+        }))}
+    );
+}
+
 
 export const getYearRequestForSpecies = (species, year) => {
     const url = `${SERVER_URL}/requests/${species}/${year}`

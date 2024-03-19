@@ -203,28 +203,36 @@ function Form({ speciesList, nationsList }) {
         })
         }
       } else if (updateType === NATION_REQUEST_UPDATE_TYPE){
+        let nationRequests = []
         nationToShowInSelect.forEach(nation => {
           if (nation["updated"]) {
-            api.updateNationRequest(
-              nation["label"],
-              selectedSpecies,
-              selectedYear, 
-              nation["quota"],
-              nation["license"],
-            ).then((result) => {
-              parseResponse(result)
-            }).catch((exception) => {
-              setLoading(false);
-              toast({
-                description: "Error submitting data",
-                status: "error",
-                duration: 5000,
-                isClosable: true,
-              })
-            })
+            nationRequests.push(
+              {
+                "nation_name": nation["label"],
+                "species": selectedSpecies,
+                "year": selectedYear,
+                "requested_quota": nation["quota"],
+                "requested_license": nation["license"],
+              }
+            )
           }
-      })
-    }
+        })
+        if (nationRequests.length > 0) {
+          api.updateNationRequests(
+            nationRequests
+          ).then((result) => {
+            parseResponse(result)
+          }).catch((exception) => {
+            setLoading(false);
+            toast({
+              description: "Error submitting data",
+              status: "error",
+              duration: 5000,
+              isClosable: true,
+            })
+          })
+        }
+      } 
     }
   }, [loading, confirmed])
 
