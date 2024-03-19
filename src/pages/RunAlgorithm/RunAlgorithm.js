@@ -97,6 +97,7 @@ function RunAlgorithm() {
           } else {
             setNoResults(false);
             setResponse(results);
+            console.log(results)
             localStorage.setItem("results", JSON.stringify(results))
             const quotaDict = createRows(results)
             const licenseDict = createRows(results, "license")
@@ -112,7 +113,6 @@ function RunAlgorithm() {
             headers.push("Submit")
             setRowHeaders(headers);
             var mergedDict = {}
-            console.log(licenseDict)
             if (!quotaDictEmpty && !licenseDictEmpty) {
               Object.keys(quotaDict).forEach((key) => {
                 if (key in quotaDict && key in licenseDict) {
@@ -128,16 +128,12 @@ function RunAlgorithm() {
             } else {
               mergedDict = licenseDict
             }
-            setRows(mergedDict)
-            console.log(mergedDict)
-            
+            setRows(mergedDict)            
           }
           const pastRunVariables = "response" in results ? results : {}
           pastRunVariables["quota"] = quota
           pastRunVariables["species"] = species
           pastRunVariables["license"] = license
-          console.log(mergedDict)
-          console.log("here")
           setAlgorithmResults(pastRunVariables)
           localStorage.setItem("rows", JSON.stringify(mergedDict))
           localStorage.setItem("headers", JSON.stringify(headers))
@@ -145,7 +141,6 @@ function RunAlgorithm() {
           setIsLoading(false);
         }
         else {
-          console.log("here")
           setError(true);
           setIsLoading(false);
         }
@@ -514,7 +509,7 @@ function RunAlgorithm() {
       (
       <Grid templateRows={"repeat(2, 1fr)"} gap={5} alignItems={"center"}>
           <GridItem rowSpan={1}>
-          <SimpleGrid columns={(quota > 0 && !quotaRequestsAllZero && license > 0 && !licenseRequestAllZero) ? 2 : 1}>
+          <SimpleGrid columns={(Object.keys(response).length === 2 && quota > 0 && !quotaRequestsAllZero && license > 0 && !licenseRequestAllZero) ? 2 : 1}>
             {
             Object.keys(response).length > 0 || Object.keys(JSON.parse(localStorage.getItem("results")).length > 0) ? 
               <>
@@ -529,7 +524,6 @@ function RunAlgorithm() {
                 && Object.keys(JSON.parse(localStorage.getItem("results"))).includes("license_response")
                 && !licenseRequestAllZero 
                 ?
-                
                 <RunAlgorithmChart header={"License Distribution"} barOneDataKey="requested_license" barTwoDataKey="granted_license" aspectRatio={getAspectRatio()} data={transformObject(response, "license")}></RunAlgorithmChart>
                  : <></>
               }
