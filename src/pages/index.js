@@ -1,3 +1,4 @@
+// src/components/ParallaxReplicatedWebsite.js
 import React, { Component } from 'react';
 import {
   ChakraProvider,
@@ -16,6 +17,7 @@ import {
   CardFooter,
   IconButton,
   Link as ChakraLink,
+  position,
 } from '@chakra-ui/react';
 import { Link as ReactRouterLink } from 'react-router-dom'
 
@@ -64,7 +66,6 @@ class MainPage extends Component {
   }
 
   getHomePageCard = (type) => {
-    console.log(this.state.speciesList)
     if (type === "updateData") {
       return <HomePageCard
         header="Update Data"
@@ -101,7 +102,7 @@ class MainPage extends Component {
   }
 
   componentDidMount() {
-    api.getHealth().then(response => {
+    api.getHealthWithAuth().then(response => {
       if (response.statusCode !== 200) {
         this.state.backendHealth = false;
       } else { 
@@ -140,17 +141,11 @@ class MainPage extends Component {
     api.updateNationVariables(nationName, nationVariableData);
   }
 
-
   render () {
     return (
       <ChakraProvider theme={theme}>
         { this.state.backendHealth ? 
         (
-        // <Box
-        //   flexDirection="column"
-        //   // bgImage="website_background.jpeg"
-        //   // bgPos={"center"}
-        // >
           <Grid 
             maxW="100vw" 
             maxH="100vh"
@@ -222,7 +217,11 @@ class MainPage extends Component {
 
             </GridItem>
             <GridItem colSpan={this.state.isMobile ? 2 : 1}></GridItem>
-            <GridItem colSpan={this.state.isMobile ? 1 : 2} rowSpan={this.state.isMobile ? 3 : 0} display={this.state.isMobile ? "flex" : ""} alignItems={"center"}>
+            <GridItem 
+              colSpan={this.state.isMobile ? 1 : 2} 
+              rowSpan={this.state.isMobile ? 1 : 3} 
+              display={this.state.isMobile ? "flex" : ""} 
+              alignItems={"center"}>
               {
                 this.state.position === 0 || !this.state.isMobile ? 
                 this.getHomePageCard("updateData") : this.state.position === 1 ? this.getHomePageCard("profileCard") : this.getHomePageCard("profileCard")
