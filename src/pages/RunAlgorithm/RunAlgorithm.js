@@ -210,17 +210,17 @@ function RunAlgorithm() {
   }, [quota, species, license])
 
   const getTotalGrantColumn = (nation, updatedValues, requestedAmount, index) => {
-    if (Object.keys(JSON.parse(localStorage.getItem("results"))).length > 0) {
+    let results = getResults()
+    if (Object.keys(results).length > 0) {
       let type = "quota"
       if (license > 0 && quota === 0 || index === 3) {
         type = "license"
       }
-      if (localStorage.getItem("results").includes(type)) {
-        let originalGrants = JSON.parse(localStorage.getItem("results"))[`${type}_response`][`granted_${type}`]
+      if (type in results) {
+        let originalGrants = results[`${type}_response`][`granted_${type}`]
         let grantTotal = 0
         for (const key in originalGrants) {
           if (key !== nation) {
-            console.log(updatedValues)
             if (key in updatedValues && type in updatedValues[key]) {
               grantTotal = grantTotal + updatedValues[key][`${type}`]
             } else {
@@ -454,7 +454,7 @@ function RunAlgorithm() {
 
   const transformObject = (inputObject, type) => {
     if (Object.keys(inputObject).length === 0) {
-      inputObject = JSON.parse(localStorage.getItem("results"))
+      inputObject = getResults()
     }
     const transformedObject = [];
     let granted_key = `granted_${type}`
@@ -486,6 +486,10 @@ function RunAlgorithm() {
     }
   }
 
+  const getResults = () => {
+    return JSON.parse(localStorage.getItem("results"))
+  }
+
   return (
   <ChakraProvider theme={theme}>
     <Box>
@@ -509,19 +513,19 @@ function RunAlgorithm() {
       (
       <Grid templateRows={"repeat(2, 1fr)"} gap={5} alignItems={"center"}>
           <GridItem rowSpan={1}>
-          <SimpleGrid columns={(Object.keys(response).length === 2 && quota > 0 && !quotaRequestsAllZero && license > 0 && !licenseRequestAllZero) ? 2 : 1}>
+          <SimpleGrid columns={(Object.keys(getResults()).length === 2 && quota > 0 && !quotaRequestsAllZero && license > 0 && !licenseRequestAllZero) ? 2 : 1}>
             {
-            Object.keys(response).length > 0 || Object.keys(JSON.parse(localStorage.getItem("results")).length > 0) ? 
+            Object.keys(response).length > 0 || Object.keys(getResults()).length > 0 ? 
               <>
               {
-                quota > 0  && Object.keys(JSON.parse(localStorage.getItem("results"))).includes("quota_response")
+                quota > 0  && Object.keys(getResults()).includes("quota_response")
                 && !quotaRequestsAllZero ?
                 <RunAlgorithmChart header={"Quota Distribution"} barOneDataKey="requested_quota" barTwoDataKey="granted_quota" aspectRatio={getAspectRatio()} data={transformObject(response, "quota")}/>
                   : <></> 
               }
               {
                 license > 0 
-                && Object.keys(JSON.parse(localStorage.getItem("results"))).includes("license_response")
+                && Object.keys(getResults()).includes("license_response")
                 && !licenseRequestAllZero 
                 ?
                 <RunAlgorithmChart header={"License Distribution"} barOneDataKey="requested_license" barTwoDataKey="granted_license" aspectRatio={getAspectRatio()} data={transformObject(response, "license")}></RunAlgorithmChart>
