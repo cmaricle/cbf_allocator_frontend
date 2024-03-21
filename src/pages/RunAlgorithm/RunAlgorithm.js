@@ -162,8 +162,11 @@ function RunAlgorithm() {
       if (Object.values(mergedDict).flat().every(element => element === 0)){
         if(type === "quota") {
           setQuotaRequestsAllZero(true)
+          localStorage.setItem("quotaRequestAllZero", true)
         } else {
           setLicenseRequestAllZero(true)
+          localStorage.setItem("licenseRequestAllZero", true)
+
         }
       }
       return mergedDict
@@ -216,7 +219,7 @@ function RunAlgorithm() {
       if (license > 0 && quota === 0 || index === 3) {
         type = "license"
       }
-      if (type in results) {
+      if (`${type}_response` in results) {
         let originalGrants = results[`${type}_response`][`granted_${type}`]
         let grantTotal = 0
         for (const key in originalGrants) {
@@ -228,7 +231,6 @@ function RunAlgorithm() {
             }
           }
         }
-        console.log(grantTotal)
         return Math.min(algorithmResults[`${type}`] - grantTotal, requestedAmount)
       }
     }
@@ -427,7 +429,7 @@ function RunAlgorithm() {
   }
 
   const getAspectRatio = () => {
-    if (quota > 0 && !quotaRequestsAllZero && license > 0 && !licenseRequestAllZero) { 
+    if (quota > 0 && !localStorage.getItem("quotaRequestAllZero") && license > 0 && !localStorage.getItem("licenseRequestAllZero")) { 
       return 3
     } else {
       return 6
@@ -513,7 +515,7 @@ function RunAlgorithm() {
       (
       <Grid templateRows={"repeat(2, 1fr)"} gap={5} alignItems={"center"}>
           <GridItem rowSpan={1}>
-          <SimpleGrid columns={(Object.keys(getResults()).length === 2 && quota > 0 && !quotaRequestsAllZero && license > 0 && !licenseRequestAllZero) ? 2 : 1}>
+          <SimpleGrid columns={(Object.keys(getResults()).length === 2 && quota > 0 && !localStorage.getItem("quotaRequestAllZero") && license > 0 && !localStorage.getItem("licenseRequestAllZero")) ? 2 : 1}>
             {
             Object.keys(response).length > 0 || Object.keys(getResults()).length > 0 ? 
               <>
